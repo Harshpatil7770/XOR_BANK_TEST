@@ -56,6 +56,7 @@ public class ManagerServiceImpl implements ManagerService {
 	private AccountBalanceDetailsRepo accountBalanceDetailsRepo;
 
 
+
 	@Override
 	public Customer addNewCustomerDetails(CustomerDTO customerDTO, String accountType) throws ParseException {
 		Customer customer = new Customer();

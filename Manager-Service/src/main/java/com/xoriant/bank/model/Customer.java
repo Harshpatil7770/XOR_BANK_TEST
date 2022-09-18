@@ -61,6 +61,8 @@ public class Customer {
 
 	@JoinColumn(name = "customer_details_login_id")
 
+	@JoinColumn(name = "customer_details_login_id")
+
 	@JoinColumn(name = "login_id")
 
 	private LoginDetails loginDetails;
