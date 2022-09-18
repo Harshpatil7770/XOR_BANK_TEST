@@ -31,10 +31,14 @@ public interface ManagerService {
 
 	List<Customer> findAllCustomerDetails();
 
-	 List<Customer> findAllCustomerDetailsWithIncreasingOrderOfAccountNumber();
+	List<Customer> findAllCustomerDetailsWithIncreasingOrderOfAccountNumber();
 
 	List<Customer> findAllCustomerDetailsWithAlphabeticalorder();
 
+	Customer findByAccountNumber(long accountDetails);
+
+	
+	
 	/*
 	 * 1) when customer send request to add money then add //feign client
 	 * 
