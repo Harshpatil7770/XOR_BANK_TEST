@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.xoriant.bank.constant.ManagerServiceConstant;
+import com.xoriant.bank.dao.AccountBalanceDetailsRepo;
 import com.xoriant.bank.dao.AccountDetailsRepo;
 import com.xoriant.bank.dao.AccountTypeRepo;
 import com.xoriant.bank.dao.AddressRepo;
@@ -29,6 +30,7 @@ import com.xoriant.bank.model.AccountDetails;
 import com.xoriant.bank.model.AccountType;
 import com.xoriant.bank.model.Address;
 import com.xoriant.bank.model.Customer;
+import com.xoriant.bank.model.LoginDetails;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -50,12 +52,34 @@ public class ManagerServiceImpl implements ManagerService {
 	@Autowired
 	private AddressRepo addressRepo;
 
+	@Autowired
+	private AccountBalanceDetailsRepo accountBalanceDetailsRepo;
+
+//	@Autowired
+//	private Customer customer;
+
+//	@Autowired
+//	private Address address;
+//
+//	@Autowired
+//	private AccountDetails accountDetails;
+//
+//	@Autowired
+//	private AccountBalanceDetails accountBalanceDetails;
+//
+//	@Autowired
+//	private AccountDetails customerAccountDetails;
+//
+//	@Autowired
+//	private LoginDetails loginDetails;
+
 	@Override
 	public Customer addNewCustomerDetails(CustomerDTO customerDTO, String accountType) throws ParseException {
 		Customer customer = new Customer();
 		Address address = new Address();
 		AccountDetails customerAccountDetails = new AccountDetails();
 		AccountBalanceDetails accountBalanceDetails = new AccountBalanceDetails();
+		LoginDetails loginDetails = new LoginDetails();
 		customer.setId(customerDTO.getId());
 		customer.setFirstName(customerDTO.getFirstName().toUpperCase());
 		customer.setLastName(customerDTO.getLastName().toUpperCase());
@@ -96,7 +120,12 @@ public class ManagerServiceImpl implements ManagerService {
 		customerAccountDetails.setAccountBalanceDetails(accountBalanceDetails);
 
 		customer.setAccountDetails(customerAccountDetails);
-
+		log.info("Account number generated and Amount added in customer account processing");
+		loginDetails.setUserName(customerDTO.getLoginDetailsDTO().getUserName());
+		loginDetails.setPassword(customerDTO.getLoginDetailsDTO().getPassword());
+		loginDetails.setAccountNumber(customerAccountNum);
+		customer.setLoginDetails(loginDetails);
+		log.info("Customer username and password added");
 		log.info("Succesfully entered customer details ........!!!");
 		log.info("Customer new account opened succesfully ..........!!!");
 		customerRepo.save(customer);
@@ -372,6 +401,16 @@ public class ManagerServiceImpl implements ManagerService {
 		log.info("Entered Accoont number present in database");
 		Customer fetchExistingCustomer = customerRepo.findByAccountDetails(isExistCustomerAccount);
 		return fetchExistingCustomer;
+	}
+
+	@Override
+	public double checkCustomerAccountBalance(long accountDetails) {
+		Customer isExistingAccount = findByAccountNumber(accountDetails);
+		double remainingCustomerAccountBalance = isExistingAccount.getAccountDetails().getAccountBalanceDetails()
+				.getAccountBalance();
+
+		log.info("Customer account present in database");
+		return remainingCustomerAccountBalance;
 	}
 
 }
