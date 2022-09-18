@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -27,5 +28,6 @@ public class AccountDetails {
 	private Date accountOpeningDate;
 
 	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "account_details_info_account_number")
 	private AccountBalanceDetails accountBalanceDetails;
 }

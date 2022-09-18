@@ -9,6 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AccountBalanceDetailsDTO {
 
+	private String response;
+
 	private long transactinId;
 
 	private double creaditAmount;
@@ -16,4 +18,6 @@ public class AccountBalanceDetailsDTO {
 	private double debitAmount;
 
 	private double accountBalance;
+
+	private long accountNumber;
 }
