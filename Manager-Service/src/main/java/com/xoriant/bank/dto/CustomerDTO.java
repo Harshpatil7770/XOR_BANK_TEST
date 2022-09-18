@@ -26,4 +26,6 @@ public class CustomerDTO {
 	private AddressDTO addressDTO;
 
 	private AccountDetailsDTO accountDetailsDTO;
+
+	private LoginDetailsDTO loginDetailsDTO;
 }

@@ -116,4 +116,10 @@ public class ManagerResource {
 		Customer response = managerService.findByAccountNumber(accountDetails);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
+	@GetMapping("/check/customer-accountbalance")
+	public ResponseEntity<Double> checkCustomerAccountBalance(@RequestParam long accountDetails) {
+		double response = managerService.checkCustomerAccountBalance(accountDetails);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }
