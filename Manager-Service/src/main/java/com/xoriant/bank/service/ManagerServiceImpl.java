@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.xoriant.bank.constant.ManagerServiceConstant;
+import com.xoriant.bank.dao.AccountBalanceDetailsRepo;
 import com.xoriant.bank.dao.AccountDetailsRepo;
 import com.xoriant.bank.dao.AccountTypeRepo;
 import com.xoriant.bank.dao.AddressRepo;
@@ -49,6 +50,9 @@ public class ManagerServiceImpl implements ManagerService {
 
 	@Autowired
 	private AddressRepo addressRepo;
+
+	@Autowired
+	private AccountBalanceDetailsRepo accountBalanceDetailsRepo;
 
 	@Override
 	public Customer addNewCustomerDetails(CustomerDTO customerDTO, String accountType) throws ParseException {
@@ -372,6 +376,16 @@ public class ManagerServiceImpl implements ManagerService {
 		log.info("Entered Accoont number present in database");
 		Customer fetchExistingCustomer = customerRepo.findByAccountDetails(isExistCustomerAccount);
 		return fetchExistingCustomer;
+	}
+
+	@Override
+	public double checkCustomerAccountBalance(long accountDetails) {
+		Customer isExistingAccount = findByAccountNumber(accountDetails);
+		double remainingCustomerAccountBalance = isExistingAccount.getAccountDetails().getAccountBalanceDetails()
+				.getAccountBalance();
+
+		log.info("Customer account present in database");
+		return remainingCustomerAccountBalance;
 	}
 
 }

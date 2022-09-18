@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.xoriant.bank.dto.AccountTypeDTO;
 import com.xoriant.bank.dto.CustomerDTO;
+import com.xoriant.bank.model.AccountBalanceDetails;
 import com.xoriant.bank.model.AccountDetails;
 import com.xoriant.bank.model.AccountType;
 import com.xoriant.bank.model.Customer;
@@ -37,8 +38,8 @@ public interface ManagerService {
 
 	Customer findByAccountNumber(long accountDetails);
 
-	
-	
+	double checkCustomerAccountBalance(long accountDetails);
+
 	/*
 	 * 1) when customer send request to add money then add //feign client
 	 * 
