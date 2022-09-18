@@ -110,4 +110,10 @@ public class ManagerResource {
 		List<Customer> response = managerService.findAllCustomerDetailsWithAlphabeticalorder();
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
+
+	@GetMapping("/find-customer/account/{accountDetails}")
+	public ResponseEntity<Customer> findByAccountNumber(@PathVariable long accountDetails) {
+		Customer response = managerService.findByAccountNumber(accountDetails);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 }

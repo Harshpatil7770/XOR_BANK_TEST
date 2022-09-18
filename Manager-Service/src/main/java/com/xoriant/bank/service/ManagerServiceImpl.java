@@ -125,9 +125,11 @@ public class ManagerServiceImpl implements ManagerService {
 				}
 			}
 			if (count == 1) {
+				log.info("Entered Account Type is present is database");
 				return true;
 			}
 		}
+		log.info("Entered Account Type is not present is database");
 		return false;
 	}
 
@@ -287,7 +289,10 @@ public class ManagerServiceImpl implements ManagerService {
 			throw new ElementNotFoundException();
 		}
 		customerRepo.deleteById(id);
+		log.info("Entered Account id is present in database");
+		log.info("Deleted customer account succesfully ");
 		return ManagerServiceConstant.DELETED_CUSTOMER_ACCOUNT;
+
 	}
 
 //	public Customer findCustomerAccountById(long customerId) {
@@ -302,8 +307,10 @@ public class ManagerServiceImpl implements ManagerService {
 	public Optional<Customer> findCustomerAccountByFirstAndLastName(String firstName, String lastName) {
 		Optional<Customer> isExistCustomerDetails = customerRepo.findByFirstNameAndLastName(firstName, lastName);
 		if (!isExistCustomerDetails.isPresent()) {
+			log.info("Entered first and last name not present in database");
 			throw new ElementNotFoundException();
 		}
+		log.info("Entered first and last name present in database");
 		return isExistCustomerDetails;
 	}
 
@@ -311,8 +318,10 @@ public class ManagerServiceImpl implements ManagerService {
 	public List<Customer> findAllCustomerDetails() {
 		List<Customer> existingCustomerDetails = customerRepo.findByInfoWall();
 		if (existingCustomerDetails == null || existingCustomerDetails.isEmpty()) {
+			log.info("Customer records not present in database");
 			throw new ElementNotFoundException();
 		}
+		log.info("Customer records present in database");
 		return existingCustomerDetails;
 	}
 
@@ -320,8 +329,10 @@ public class ManagerServiceImpl implements ManagerService {
 	public Customer findCustomerAccountById(long id) {
 		Customer isExistingAccount = customerRepo.findById(id).orElse(null);
 		if (isExistingAccount == null) {
+			log.info("entered customer account id is not present in database");
 			throw new ElementNotFoundException();
 		}
+		log.info("Entered customer account id is present is database");
 		return isExistingAccount;
 	}
 
@@ -329,7 +340,8 @@ public class ManagerServiceImpl implements ManagerService {
 	public List<Customer> findAllCustomerDetailsWithIncreasingOrderOfAccountNumber() {
 		List<Customer> fetchAllAccountDetails = customerRepo.findAll();
 //		List<Customer> increasingOrderAccountNumberLists = null;
-		//List<AccountDetails> fetchCustomerDetails=fetchAllAccountDetails.stream().sorted(Comparator.comparingLong(AccountDetails::getAccountNumber)).c
+		// List<AccountDetails>
+		// fetchCustomerDetails=fetchAllAccountDetails.stream().sorted(Comparator.comparingLong(AccountDetails::getAccountNumber)).c
 //		List<Customer> increasingOrderAccountNumberLists = fetchAllAccountDetails.stream()
 //				.sorted(Comparator.comparingLong(Customer::getAccountDetails)).collect(Collectors.toList());
 
@@ -339,10 +351,27 @@ public class ManagerServiceImpl implements ManagerService {
 	@Override
 	public List<Customer> findAllCustomerDetailsWithAlphabeticalorder() {
 		List<Customer> fetchAllCustomerDetails = customerRepo.findAll();
+		if (fetchAllCustomerDetails == null) {
+			log.info("Customer records not present in database");
+		}
+		log.info("Customer records present in database");
 		List<Customer> fetchByFirstCharacterSequntialManner = fetchAllCustomerDetails.stream()
 				.sorted(Comparator.comparing(Customer::getFirstName)).collect(Collectors.toList());
 
+		log.info("Arranging all customer records in alphabetical order...");
 		return fetchByFirstCharacterSequntialManner;
+	}
+
+	@Override
+	public Customer findByAccountNumber(long accountDetails) {
+		AccountDetails isExistCustomerAccount = accountDetailsRepo.findById(accountDetails).orElse(null);
+		if (isExistCustomerAccount == null) {
+			log.info("Entered Account number not present in database");
+			throw new ElementNotFoundException();
+		}
+		log.info("Entered Accoont number present in database");
+		Customer fetchExistingCustomer = customerRepo.findByAccountDetails(isExistCustomerAccount);
+		return fetchExistingCustomer;
 	}
 
 }

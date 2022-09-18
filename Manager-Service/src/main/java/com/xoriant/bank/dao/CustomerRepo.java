@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import com.xoriant.bank.model.AccountDetails;
 import com.xoriant.bank.model.Customer;
 
 @Repository
@@ -19,6 +20,8 @@ public interface CustomerRepo extends JpaRepository<Customer, Long> {
 	public List<Customer> findByInfoWall();
 
 	public Optional<Customer> findByFirstNameAndLastName(String firstName, String lastName);
+
+	public Customer findByAccountDetails(AccountDetails isExistCustomerAccount);
 
 	/*
 	 * @Query(value="",nativeQuery = true) public List<Customer>
