@@ -6,10 +6,12 @@ import java.util.Optional;
 
 import com.xoriant.bank.dto.AccountTypeDTO;
 import com.xoriant.bank.dto.CustomerDTO;
+import com.xoriant.bank.dto.LoginDetailsDTO;
 import com.xoriant.bank.model.AccountBalanceDetails;
 import com.xoriant.bank.model.AccountDetails;
 import com.xoriant.bank.model.AccountType;
 import com.xoriant.bank.model.Customer;
+import com.xoriant.bank.model.LoginDetails;
 
 public interface ManagerService {
 
@@ -39,6 +41,8 @@ public interface ManagerService {
 	Customer findByAccountNumber(long accountDetails);
 
 	double checkCustomerAccountBalance(long accountDetails);
+
+	LoginDetails updateCustomerPassword(long accountNumber, String oldPassword, LoginDetailsDTO loginDetailsDTO);
 
 	/*
 	 * 1) when customer send request to add money then add //feign client

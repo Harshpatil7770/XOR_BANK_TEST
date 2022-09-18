@@ -18,10 +18,12 @@ import com.xoriant.bank.dao.AccountDetailsRepo;
 import com.xoriant.bank.dao.AccountTypeRepo;
 import com.xoriant.bank.dao.AddressRepo;
 import com.xoriant.bank.dao.CustomerRepo;
+import com.xoriant.bank.dao.LoginDetailRepo;
 import com.xoriant.bank.dto.AccountBalanceDetailsDTO;
 import com.xoriant.bank.dto.AccountTypeDTO;
 import com.xoriant.bank.dto.AddressDTO;
 import com.xoriant.bank.dto.CustomerDTO;
+import com.xoriant.bank.dto.LoginDetailsDTO;
 import com.xoriant.bank.exception.AccountTypeExpection;
 import com.xoriant.bank.exception.CustomerAddressException;
 import com.xoriant.bank.exception.ElementNotFoundException;
@@ -395,6 +397,28 @@ public class ManagerServiceImpl implements ManagerService {
 
 		log.info("Customer account present in database");
 		return remainingCustomerAccountBalance;
+	}
+
+	@Override
+	public LoginDetails updateCustomerPassword(long accountNumber, String oldPassword,
+			LoginDetailsDTO loginDetailsDTO) {
+		LoginDetails loginDetails = new LoginDetails();
+		LoginDetails existingLoginDetails = loginDetailRepo.findByAccountNumber(accountNumber);
+		if (existingLoginDetails == null) {
+			log.info("Entered Account number not present in database");
+			throw new ElementNotFoundException();
+		}
+		if (existingLoginDetails.getPassword().equals(oldPassword)) {
+			loginDetails.setLoginId(loginDetailsDTO.getLoginId());
+			loginDetails.setUserName(loginDetailsDTO.getUserName());
+			loginDetails.setPassword(loginDetailsDTO.getPassword());
+			loginDetails.setAccountNumber(loginDetailsDTO.getAccountNumber());
+			loginDetailRepo.save(loginDetails);
+		} else {
+			log.info("Old password not matched");
+		}
+		return null;
+
 	}
 
 }
