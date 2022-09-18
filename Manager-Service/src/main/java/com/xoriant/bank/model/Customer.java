@@ -3,10 +3,12 @@ package com.xoriant.bank.model;
 import java.util.Date;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
@@ -48,9 +50,11 @@ public class Customer {
 	private Date dateOfBirth;
 
 	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "customer_details_address_id")
 	private Address address;
 
 	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "customer_details_account_id")
 	private AccountDetails accountDetails;
 
 }

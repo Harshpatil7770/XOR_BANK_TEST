@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import com.xoriant.bank.dto.AccountTypeDTO;
 import com.xoriant.bank.dto.CustomerDTO;
+import com.xoriant.bank.model.AccountDetails;
 import com.xoriant.bank.model.AccountType;
 import com.xoriant.bank.model.Customer;
 
@@ -22,15 +23,17 @@ public interface ManagerService {
 	List<Customer> addNewListsOfSavingCustomerAccount(List<CustomerDTO> customerDTOLists, String accountType)
 			throws ParseException;
 
-	String updateListsOfCustomerDetails(List<CustomerDTO> customerDTOLists, String accountType);
+	String deleteCustomerAccount(long id);
 
-	String deleteCustomerAccount(int customerId);
-
-	Customer findCustomerAccountById(int id);
+	Customer findCustomerAccountById(long id);
 
 	Optional<Customer> findCustomerAccountByFirstAndLastName(String firstName, String lastName);
 
 	List<Customer> findAllCustomerDetails();
+
+	 List<Customer> findAllCustomerDetailsWithIncreasingOrderOfAccountNumber();
+
+	List<Customer> findAllCustomerDetailsWithAlphabeticalorder();
 
 	/*
 	 * 1) when customer send request to add money then add //feign client
