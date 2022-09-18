@@ -58,7 +58,11 @@ public class Customer {
 	private AccountDetails accountDetails;
 
 	@OneToOne(cascade = CascadeType.ALL)
+
+	@JoinColumn(name = "customer_details_login_id")
+
 	@JoinColumn(name = "login_id")
+
 	private LoginDetails loginDetails;
 
 }

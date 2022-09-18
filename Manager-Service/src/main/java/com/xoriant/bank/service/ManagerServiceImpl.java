@@ -30,6 +30,7 @@ import com.xoriant.bank.model.AccountDetails;
 import com.xoriant.bank.model.AccountType;
 import com.xoriant.bank.model.Address;
 import com.xoriant.bank.model.Customer;
+import com.xoriant.bank.model.LoginDetails;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,12 +55,14 @@ public class ManagerServiceImpl implements ManagerService {
 	@Autowired
 	private AccountBalanceDetailsRepo accountBalanceDetailsRepo;
 
+
 	@Override
 	public Customer addNewCustomerDetails(CustomerDTO customerDTO, String accountType) throws ParseException {
 		Customer customer = new Customer();
 		Address address = new Address();
 		AccountDetails customerAccountDetails = new AccountDetails();
 		AccountBalanceDetails accountBalanceDetails = new AccountBalanceDetails();
+		LoginDetails loginDetails = new LoginDetails();
 		customer.setId(customerDTO.getId());
 		customer.setFirstName(customerDTO.getFirstName().toUpperCase());
 		customer.setLastName(customerDTO.getLastName().toUpperCase());
@@ -100,7 +103,12 @@ public class ManagerServiceImpl implements ManagerService {
 		customerAccountDetails.setAccountBalanceDetails(accountBalanceDetails);
 
 		customer.setAccountDetails(customerAccountDetails);
-
+		log.info("Account number generated and Amount added in customer account processing");
+		loginDetails.setUserName(customerDTO.getLoginDetailsDTO().getUserName());
+		loginDetails.setPassword(customerDTO.getLoginDetailsDTO().getPassword());
+		loginDetails.setAccountNumber(customerAccountNum);
+		customer.setLoginDetails(loginDetails);
+		log.info("Customer username and password added");
 		log.info("Succesfully entered customer details ........!!!");
 		log.info("Customer new account opened succesfully ..........!!!");
 		customerRepo.save(customer);

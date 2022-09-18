@@ -29,4 +29,6 @@ public class LoginDetails {
 	@Column(name = "password")
 	private String password;
 
+	private long accountNumber;
+
 }
