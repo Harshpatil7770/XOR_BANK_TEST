@@ -24,9 +24,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.xoriant.bank.dto.AccountTypeDTO;
 import com.xoriant.bank.dto.CustomerDTO;
+import com.xoriant.bank.dto.LoginDetailsDTO;
 import com.xoriant.bank.model.AccountDetails;
 import com.xoriant.bank.model.AccountType;
 import com.xoriant.bank.model.Customer;
+import com.xoriant.bank.model.LoginDetails;
 import com.xoriant.bank.service.ManagerService;
 
 @RestController
@@ -120,6 +122,13 @@ public class ManagerResource {
 	@GetMapping("/check/customer-accountbalance")
 	public ResponseEntity<Double> checkCustomerAccountBalance(@RequestParam long accountDetails) {
 		double response = managerService.checkCustomerAccountBalance(accountDetails);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+	@PutMapping("/update/customer/{accountNumber}/{oldPassword}")
+	public ResponseEntity<LoginDetails> updateCustomerPassword(@PathVariable long accountNumber,
+			@PathVariable String oldPassword, @RequestBody LoginDetailsDTO loginDetailsDTO) {
+		LoginDetails response = managerService.updateCustomerPassword(accountNumber, oldPassword, loginDetailsDTO);
 		return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 }
