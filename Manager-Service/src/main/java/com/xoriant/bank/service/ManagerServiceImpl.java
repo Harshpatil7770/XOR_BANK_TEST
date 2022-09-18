@@ -55,23 +55,7 @@ public class ManagerServiceImpl implements ManagerService {
 	@Autowired
 	private AccountBalanceDetailsRepo accountBalanceDetailsRepo;
 
-//	@Autowired
-//	private Customer customer;
 
-//	@Autowired
-//	private Address address;
-//
-//	@Autowired
-//	private AccountDetails accountDetails;
-//
-//	@Autowired
-//	private AccountBalanceDetails accountBalanceDetails;
-//
-//	@Autowired
-//	private AccountDetails customerAccountDetails;
-//
-//	@Autowired
-//	private LoginDetails loginDetails;
 
 	@Override
 	public Customer addNewCustomerDetails(CustomerDTO customerDTO, String accountType) throws ParseException {
