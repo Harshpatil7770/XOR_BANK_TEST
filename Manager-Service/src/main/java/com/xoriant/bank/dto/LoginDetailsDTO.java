@@ -14,6 +14,6 @@ public class LoginDetailsDTO {
 	private String userName;
 
 	private String password;
-
+  
 	private long accountNumber;
 }
