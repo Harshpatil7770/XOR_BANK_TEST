@@ -57,6 +57,7 @@ public class AdminServiceImpl implements AdminService {
 			throw new InputUserException();
 		}
 		// ------- Branch Address Details ----------//
+		log.info("Branch id,name,ifsc code started adding ...." );
 		branchAddress = new Address();
 		branchAddress.setAddressId(branchDTO.getAddressDTO().getAddressId());
 		branchAddress.setHouseNumber(branchDTO.getAddressDTO().getHouseNumber());
@@ -64,8 +65,11 @@ public class AdminServiceImpl implements AdminService {
 		branchAddress.setStreetName(branchDTO.getAddressDTO().getStreetName().toUpperCase());
 		branchAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
 		branch.setAddress(branchAddress);
+		log.info("Branch address details adding ...");
 		log.info(ApplicationConstant.ADD_NEW_BRANCH);
-		return branchRepo.save(branch);
+
+		Branch branchDetails = branchRepo.save(branch);
+		return branchDetails;
 	}
 
 	@Override
@@ -75,6 +79,7 @@ public class AdminServiceImpl implements AdminService {
 		if (!existingBranchDetails.isPresent()) {
 			throw new ElementNotFoundException();
 		}
+		log.info("Entered branch_id is present moving further ....");
 		// ----------- Update the existing branch details --------------------//
 		Branch updateBranch = branchRepo.findById(branchDTO.getBranchId()).orElse(null);
 		updateBranch.setBranchId(branchDTO.getBranchId());
@@ -101,7 +106,8 @@ public class AdminServiceImpl implements AdminService {
 		updateAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
 		updateBranch.setAddress(updateAddress);
 		log.info(ApplicationConstant.UPDATE_BRANCH_DETAILS);
-		return branchRepo.save(updateBranch);
+	Branch updatedExistingBranch=branchRepo.save(updateBranch);
+	return updatedExistingBranch;
 	}
 
 	@Override

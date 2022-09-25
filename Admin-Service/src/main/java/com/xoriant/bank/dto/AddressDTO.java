@@ -11,7 +11,7 @@ public class AddressDTO {
 
 	private long addressId;
 
-	private long houseNumber;
+	private String houseNumber;
 
 	private String houseName;
 

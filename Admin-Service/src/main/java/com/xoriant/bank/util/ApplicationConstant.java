@@ -14,11 +14,11 @@ public class ApplicationConstant {
 
 	public static final double INITIAL_BALANCE = 1000;
 
-	public static final String ADD_NEW_BRANCH = "addNewBranch() called";
+	public static final String ADD_NEW_BRANCH = "Branch Details Added Succesfully now persisting to the database .....";
 
 	public static final String ADD_NEW_MANAGER = "addNewManager() called";
 
-	public static final String UPDATE_BRANCH_DETAILS = "updateBranchDetails() called";
+	public static final String UPDATE_BRANCH_DETAILS = "Existing Branch updated now persisting record to the database ...";
 
 	public static final String FETCH_ALL_BRANCH = "fetchAllBranch() called";
 
