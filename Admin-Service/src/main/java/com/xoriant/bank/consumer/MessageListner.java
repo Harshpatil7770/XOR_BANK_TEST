@@ -1,11 +1,11 @@
 package com.xoriant.bank.consumer;
 
-import org.springframework.kafka.annotation.KafkaListener;
-
-import com.xoriant.bank.dto.ManagerDTO;
-import com.xoriant.bank.model.Address;
-import com.xoriant.bank.model.Manager;
-import com.xoriant.bank.util.KafkaConstant;
+//import org.springframework.kafka.annotation.KafkaListener;
+//
+//import com.xoriant.bank.dto.ManagerDTO;
+//import com.xoriant.bank.model.Address;
+//import com.xoriant.bank.model.Manager;
+//import com.xoriant.bank.util.KafkaConstant;
 
 ////@Controller
 //public class MessageListner {
