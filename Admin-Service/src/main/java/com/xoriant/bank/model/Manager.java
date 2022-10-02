@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
@@ -37,17 +38,22 @@ public class Manager {
 	@NotBlank
 	private String lastName;
 
-	@NotNull(message = "Please enter user name")
-	private String userName;
+//	@NotNull(message = "Please enter user name")
+//	private String userName;
 
-	// ----------- Minimun 8 character, atleast 1 letter and 1 number ----------//
-	// @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")
-	private String password;
+//	// ----------- Minimun 8 character, atleast 1 letter and 1 number ----------//
+//	// @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")
+//	private String password;
+
+	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "login_id")
+	private ManagerCredential credential;
 
 	@NotBlank(message = "Please enter user type")
 	private String userType;
 
 	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "address_id")
 	private Address address;
 
 	private long branchId;

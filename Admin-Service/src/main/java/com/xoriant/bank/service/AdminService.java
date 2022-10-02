@@ -10,6 +10,8 @@ import com.xoriant.bank.model.Manager;
 public interface AdminService {
 
 	Branch addNewBranch(BranchDTO branchDTO);
+	
+	List<Branch> findAllBranchesWithAddressDetails();
 
 	Branch updateBranchDetails(BranchDTO branchDTO);
 
@@ -17,9 +19,9 @@ public interface AdminService {
 
 	Branch findByBranchId(long branchId);
 
-	Branch findByName(String branchName);
+	Branch findBranchByName(String branchName);
 
-	void deleteBranch(long branchId);
+	boolean deleteBranch(long branchId);
 
 	Manager addNewManager(ManagerDTO managerDTO);
 

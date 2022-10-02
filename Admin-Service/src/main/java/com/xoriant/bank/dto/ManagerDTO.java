@@ -28,12 +28,14 @@ public class ManagerDTO {
 	@NotBlank
 	private String lastName;
 
-	@NotNull(message = "Please enter user name")
-	private String userName;
-
-	// ----------- Minimun 8 character, atleast 1 letter and 1 number ----------//
-	// @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")
-	private String password;
+//	@NotNull(message = "Please enter user name")
+//	private String userName;
+//
+//	// ----------- Minimun 8 character, atleast 1 letter and 1 number ----------//
+//	// @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$")
+//	private String password;
+	
+	private ManagerCredentialDTO credentialDTO;
 
 	@NotBlank(message = "Please enter user type")
 	private String userType;
