@@ -1,7 +1,5 @@
 package com.xoriant.bank.model;
 
-import java.io.Serializable;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -13,22 +11,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Table(name = "customer_account_basic_details")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "common_address")
-public class Address implements Serializable {
+public class ManagerCredential {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long addressId;
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private int id;
 
-	private String houseNumber;
+	private String userName;
 
-	private String houseName;
-
-	private String streetName;
-
-	private String cityName;
+	private String password;
 
 }

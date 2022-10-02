@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
@@ -16,12 +17,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
+
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "branch_details")
-public class Branch {
+public class Branch implements Serializable{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,11 +36,13 @@ public class Branch {
 	@NotBlank(message = "branch name is mandatory")
 	private String branchName;
 
-	//@Pattern(regexp = "^[A-Z]{4}0[A-Z0-9]{6}$", message = "IFSC Code is mandatory")
+	// @Pattern(regexp = "^[A-Z]{4}0[A-Z0-9]{6}$", message = "IFSC Code is
+	// mandatory")
 	@NotBlank(message = "IFSC Code is mandatory")
 	private String ifscCode;
 
 	@OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+	@JoinColumn(name = "address_id")
 	private Address address;
 
 }

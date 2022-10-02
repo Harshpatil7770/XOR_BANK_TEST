@@ -16,7 +16,7 @@ public class ApplicationConstant {
 
 	public static final String ADD_NEW_BRANCH = "Branch Details Added Succesfully now persisting to the database .....";
 
-	public static final String ADD_NEW_MANAGER = "addNewManager() called";
+	public static final String ADD_NEW_MANAGER = "Manager Basic details added and branch assinged succesfully, now persisting data to the system..";
 
 	public static final String UPDATE_BRANCH_DETAILS = "Existing Branch updated now persisting record to the database ...";
 
