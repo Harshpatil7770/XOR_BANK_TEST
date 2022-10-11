@@ -26,33 +26,33 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AdminResource {
 
-	@Autowired
-	private AdminService adminService;
-	
-	@Autowired
-	private LoginMsgSender loginMsgSender;
-
-	@PostMapping("/add/branch")
-	public ResponseEntity<Branch> addNewBranch(@Valid  @RequestBody BranchDTO branchDTO) {
-		log.info(">>>> addNewBranch() called " + branchDTO);
-		Branch response = adminService.addNewBranch(branchDTO);
-		if(response!=null) {
-			loginMsgSender.addNewBranchDetails(" NEW BRANCH DETAILS ADDED >>> "+" BRANCH_ID :: "+response.getBranchId()+" BRACH_NAME :: "+response.getBranchName());
-			}
-		return new ResponseEntity<>(response, HttpStatus.CREATED);
-	}
-
-	
-	@PutMapping("/update/branch")
-	public ResponseEntity<Branch> updateBranchDetails(@Valid @RequestBody BranchDTO branchDTO) {
-		log.info("UpdateBranch() called "+branchDTO);
-		Branch	response=adminService.updateBranchDetails(branchDTO);
-		if(response!=null) {
-			loginMsgSender.updateBranchDetails("Update existing Branch details succesfully >>> BRACH_ID :: "+response.getBranchId()+""
-					+ "BRANCH_NAME :: "+response.getBranchName());
-		}	
-		return new ResponseEntity<>(response,HttpStatus.OK);
-	}
+//	@Autowired
+//	private AdminService adminService;
+//	
+//	@Autowired
+//	private LoginMsgSender loginMsgSender;
+//
+//	@PostMapping("/add/branch")
+//	public ResponseEntity<Branch> addNewBranch(@Valid  @RequestBody BranchDTO branchDTO) {
+//		log.info(">>>> addNewBranch() called " + branchDTO);
+//		Branch response = adminService.addNewBranch(branchDTO);
+//		if(response!=null) {
+//			loginMsgSender.addNewBranchDetails(" NEW BRANCH DETAILS ADDED >>> "+" BRANCH_ID :: "+response.getBranchId()+" BRACH_NAME :: "+response.getBranchName());
+//			}
+//		return new ResponseEntity<>(response, HttpStatus.CREATED);
+//	}
+//
+//	
+//	@PutMapping("/update/branch")
+//	public ResponseEntity<Branch> updateBranchDetails(@Valid @RequestBody BranchDTO branchDTO) {
+//		log.info("UpdateBranch() called "+branchDTO);
+//		Branch	response=adminService.updateBranchDetails(branchDTO);
+//		if(response!=null) {
+//			loginMsgSender.updateBranchDetails("Update existing Branch details succesfully >>> BRACH_ID :: "+response.getBranchId()+""
+//					+ "BRANCH_NAME :: "+response.getBranchName());
+//		}	
+//		return new ResponseEntity<>(response,HttpStatus.OK);
+//	}
 
 //	List<Branch> fetchAllBranch();
 //

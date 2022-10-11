@@ -25,7 +25,7 @@ public interface AdminService {
 
 	Manager addNewManager(ManagerDTO managerDTO);
 
-	Manager updateManagerDetails(ManagerDTO managerDTO);
+	boolean updateManagerDetails(ManagerDTO managerDTO);
 
 	List<Manager> addNewListsOfManager(List<ManagerDTO> managerDTOLists);
 
@@ -33,7 +33,7 @@ public interface AdminService {
 
 	List<Manager> fetchAllManagerDetails();
 
-	Manager findByManagerId(long managerId);
+	boolean findManagerById(long managerId);
 
 	Manager findByFirstNameAndLastName(String firstName, String lastName);
 

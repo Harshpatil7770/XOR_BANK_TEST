@@ -1,6 +1,5 @@
 package com.xoriant.bank.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.xoriant.bank.dto.BranchDTO;
 import com.xoriant.bank.dto.ManagerDTO;
@@ -18,10 +18,11 @@ import com.xoriant.bank.exception.ElementNotFoundException;
 import com.xoriant.bank.exception.InputUserException;
 import com.xoriant.bank.model.Address;
 import com.xoriant.bank.model.Branch;
-import com.xoriant.bank.model.ManagerCredential;
 import com.xoriant.bank.model.Manager;
+import com.xoriant.bank.model.ManagerCredential;
 import com.xoriant.bank.repo.AddressRepo;
 import com.xoriant.bank.repo.BranchRepo;
+import com.xoriant.bank.repo.ManagerCredentialRepo;
 import com.xoriant.bank.repo.ManagerRepo;
 import com.xoriant.bank.util.ApplicationConstant;
 
@@ -40,6 +41,9 @@ public class AdminServiceImpl implements AdminService {
 
 	@Autowired
 	private AddressRepo addressRepo;
+
+	@Autowired
+	private ManagerCredentialRepo managerCredentialRepo;
 
 	private Branch branch;
 	private Address branchAddress;
@@ -179,11 +183,13 @@ public class AdminServiceImpl implements AdminService {
 		credential = new ManagerCredential();
 
 		credential.setUserName(managerDTO.getCredentialDTO().getUserName());
-		if (managerDTO.getCredentialDTO().getUserName().isBlank() || managerDTO.getCredentialDTO().getUserName().isEmpty()) {
+		if (managerDTO.getCredentialDTO().getUserName().isBlank()
+				|| managerDTO.getCredentialDTO().getUserName().isEmpty()) {
 			throw new InputUserException();
 		}
 		credential.setPassword(managerDTO.getCredentialDTO().getPassword());
-		if (managerDTO.getCredentialDTO().getPassword().isBlank() || managerDTO.getCredentialDTO().getPassword().isEmpty()) {
+		if (managerDTO.getCredentialDTO().getPassword().isBlank()
+				|| managerDTO.getCredentialDTO().getPassword().isEmpty()) {
 			throw new InputUserException();
 		}
 		manager.setCredential(credential);
@@ -216,54 +222,85 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
+	@Cacheable(value = "adminServiceImplCache")
 	public List<Manager> fetchAllManagerDetails() {
-//		List<Manager> existingManagerLists = managerRepo.findAllDetails();
-//		if (existingManagerLists.isEmpty()) {
-//			throw new ElementNotFoundException();
-//		}
-//		log.info(ApplicationConstant.FETCH_ALL_MANAGER);
-//		return existingManagerLists;
-		return null;
+		List<Manager> existingManagerLists = managerRepo.findAllManagerWithTheirBranchDetails();
+		if (existingManagerLists.isEmpty()) {
+			log.info("Manager details not found in system");
+			throw new ElementNotFoundException();
+		}
+		log.info("Manager details found in system");
+		return existingManagerLists;
 	}
 
 	@Override
-	public Manager updateManagerDetails(ManagerDTO managerDTO) {
-//		// ----- Check entered manager id Present or not ------//
-//		Optional<Manager> existingManager = managerRepo.findById(managerDTO.getManagerId());
-//		if (!existingManager.isPresent()) {
-//			throw new ElementNotFoundException();
-//		}
-//		Manager updateManagerDetails = managerRepo.findById(managerDTO.getManagerId()).orElse(null);
-//		updateManagerDetails.setManagerId(managerDTO.getManagerId());
-//		updateManagerDetails.setFirstName(managerDTO.getFirstName().toUpperCase());
-//		updateManagerDetails.setLastName(managerDTO.getLastName().toUpperCase());
-//		updateManagerDetails.setUserName(managerDTO.getUserName());
-//		updateManagerDetails.setPassword(managerDTO.getPassword());
-//		updateManagerDetails.setUserType(managerDTO.getUserType().toUpperCase());
-//
-//		// ----- Check entered address id Present or not ------//
-//		Optional<Address> existingAddressDetails = addressRepo.findById(managerDTO.getAddressDTO().getAddressId());
-//		if (!existingAddressDetails.isPresent()) {
-//			throw new ElementNotFoundException();
-//		}
-//
-//		Address updateExistingAddress = addressRepo.findById(managerDTO.getAddressDTO().getAddressId()).orElse(null);
-//		updateExistingAddress.setAddressId(managerDTO.getAddressDTO().getAddressId());
-//		updateExistingAddress.setHouseNumber(managerDTO.getAddressDTO().getHouseNumber());
-//		updateExistingAddress.setHouseName(managerDTO.getAddressDTO().getHouseName().toUpperCase());
-//		updateExistingAddress.setStreetName(managerDTO.getAddressDTO().getStreetName().toUpperCase());
-//		updateExistingAddress.setCityName(managerDTO.getAddressDTO().getCityName().toUpperCase());
-//		updateManagerDetails.setAddress(updateExistingAddress);
-//
-//		// ----- Check entered branch id Present or not ------//
-//		Optional<Branch> existingBrand = branchRepo.findById(managerDTO.getBranchId());
-//		if (!existingBrand.isPresent()) {
-//			throw new ElementNotFoundException();
-//		}
-//		updateManagerDetails.setBranchId(managerDTO.getBranchId());
-//		return managerRepo.save(updateManagerDetails);
-		return null;
+	public boolean updateManagerDetails(ManagerDTO managerDTO) {
+		// ----- Check entered manager id Present or not ------//
+		boolean existingManagerResult = findManagerById(managerDTO.getManagerId());
+		if (existingManagerResult == false) {
+			log.info("Entered manager id " + managerDTO.getManagerId() + " not present in system");
+			return false;
+		}
+		log.info("Entered manager id " + managerDTO.getManagerId() + " present in system");
+		Manager updateManagerDetails = managerRepo.findById(managerDTO.getManagerId()).orElse(null);
+		updateManagerDetails.setManagerId(managerDTO.getManagerId());
+		updateManagerDetails.setFirstName(managerDTO.getFirstName().toUpperCase());
+		updateManagerDetails.setLastName(managerDTO.getLastName().toUpperCase());
+		
+		// ------- Check entered login id present or not --------//
+		boolean verifyExistingDetails = findManagerCredentialDetails(managerDTO.getCredentialDTO().getId(),
+				managerDTO.getCredentialDTO().getUserName(), managerDTO.getCredentialDTO().getPassword());
+		if(verifyExistingDetails==false) {
+			log.info("Manager Creaditional not matched.");
+			return false;
+		}
+		ManagerCredential updateManagerCredential=new ManagerCredential();
+		updateManagerCredential.setId(managerDTO.getCredentialDTO().getId());
+		updateManagerCredential.setUserName(managerDTO.getCredentialDTO().getUserName());
+		updateManagerCredential.setPassword(managerDTO.getCredentialDTO().getPassword());
+		updateManagerDetails.setCredential(updateManagerCredential);
+		log.info("Manager Creaditional updated");
 
+		// ----- Check entered address id Present or not ------//
+		Optional<Address> existingAddressDetails = addressRepo.findById(managerDTO.getAddressDTO().getAddressId());
+		if (!existingAddressDetails.isPresent()) {
+			throw new ElementNotFoundException();
+		}
+
+		Address updateExistingAddress = addressRepo.findById(managerDTO.getAddressDTO().getAddressId()).orElse(null);
+		updateExistingAddress.setAddressId(managerDTO.getAddressDTO().getAddressId());
+		updateExistingAddress.setHouseNumber(managerDTO.getAddressDTO().getHouseNumber());
+		updateExistingAddress.setHouseName(managerDTO.getAddressDTO().getHouseName().toUpperCase());
+		updateExistingAddress.setStreetName(managerDTO.getAddressDTO().getStreetName().toUpperCase());
+		updateExistingAddress.setCityName(managerDTO.getAddressDTO().getCityName().toUpperCase());
+		updateManagerDetails.setAddress(updateExistingAddress);
+
+//		// ----- Check entered branch id Present or not ------//
+		Optional<Branch> existingBrand = branchRepo.findById(managerDTO.getBranchId());
+		if (!existingBrand.isPresent()) {
+			throw new ElementNotFoundException();
+		}
+		updateManagerDetails.setBranchId(managerDTO.getBranchId());
+		managerRepo.save(updateManagerDetails);
+		return false;
+	}
+
+	private boolean findManagerCredentialDetails(long id, String username, String password) {
+		Optional<ManagerCredential> existingManager = managerCredentialRepo.findById(id);
+		if (!existingManager.isPresent()) {
+			log.info("Entered Login Id " + id + " not present in the system");
+			return false;
+		}
+		if (existingManager.get().getUserName().compareTo(username) < 0) {
+			log.info("Entered username is not matched to existing username");
+			return false;
+		}
+		if (existingManager.get().getPassword().compareTo(password) < 0) {
+			log.info("Entered password is not matched to existing password");
+			return false;
+		}
+		log.info("Manager creaditional matches");
+		return true;
 	}
 
 	@Override
@@ -391,12 +428,14 @@ public class AdminServiceImpl implements AdminService {
 	}
 
 	@Override
-	public Manager findByManagerId(long managerId) {
+	public boolean findManagerById(long managerId) {
 		Manager existingManger = managerRepo.findById(managerId).orElse(null);
 		if (existingManger == null) {
-			throw new ElementNotFoundException();
+			log.info("Entered manager id " + managerId + " not present in system");
+			return false;
 		}
-		return existingManger;
+		log.info("Entered manager id " + managerId + " present in system");
+		return true;
 	}
 
 	@Override
@@ -451,4 +490,5 @@ public class AdminServiceImpl implements AdminService {
 		log.info("Branch and their address details present in database");
 		return existingBranchDetails;
 	}
+
 }

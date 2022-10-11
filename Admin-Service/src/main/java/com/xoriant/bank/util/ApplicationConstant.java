@@ -22,7 +22,7 @@ public class ApplicationConstant {
 
 	public static final String FETCH_ALL_BRANCH = "fetchAllBranch() called";
 
-	public static final String FETCH_ALL_MANAGER = "fetchAllManager() called";
+	public static final String FETCH_ALL_MANAGER = "Manager Details present in a system";
 
 	public static final String ADD_NEW_LISTS_BRANCH = "addNewListsOfBranch() called";
 

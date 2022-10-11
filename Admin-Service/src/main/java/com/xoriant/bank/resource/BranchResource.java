@@ -39,7 +39,7 @@ public class BranchResource {
 	@Autowired
 	private AdminMsgSender loginMsgSender;
 
-	@PostMapping("/add/branch")
+	@PostMapping("/save")
 	public ResponseEntity<Branch> addNewBranch(@Valid @RequestBody BranchDTO branchDTO) {
 		log.info(">>>> addNewBranch() called " + branchDTO);
 		Branch response = adminService.addNewBranch(branchDTO);

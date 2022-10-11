@@ -1,9 +1,9 @@
 package com.xoriant.bank.service;
 
-import com.xoriant.bank.dto.LoginConstantDTO;
-import com.xoriant.bank.model.LoginConstant;
-
-public interface CustomerLoginService {
-
-	public LoginConstant addNewCustomerAccount(LoginConstantDTO loginConstantDTO);
-}
+//import com.xoriant.bank.dto.LoginConstantDTO;
+//import com.xoriant.bank.model.Credential;
+//
+//public interface CustomerLoginService {
+//
+//	public Credential addNewCustomerAccount(LoginConstantDTO loginConstantDTO);
+//}
