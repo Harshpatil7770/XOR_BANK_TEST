@@ -1,5 +1,7 @@
 package com.xoriant.bank.model;
 
+import java.io.Serializable;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,11 +13,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "customer_account_basic_details")
+@Table(name = "manager_creaditional")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ManagerCredential {
+public class ManagerCredential implements Serializable{
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
