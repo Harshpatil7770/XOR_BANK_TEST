@@ -23,7 +23,7 @@ import com.xoriant.bank.dto.ManagerDTO;
 import com.xoriant.bank.model.Branch;
 import com.xoriant.bank.model.Manager;
 import com.xoriant.bank.sender.AdminMsgSender;
-import com.xoriant.bank.service.AdminService;
+import com.xoriant.bank.service.BranchService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,17 +34,19 @@ import lombok.extern.slf4j.Slf4j;
 public class BranchResource {
 
 	@Autowired
-	private AdminService adminService;
+	private BranchService adminService;
 
 	@Autowired
-	private AdminMsgSender loginMsgSender;
+	private AdminMsgSender branchDetailsMsgSender;
+	
+	int retryCount=0;
 
 	@PostMapping("/save")
-	public ResponseEntity<Branch> addNewBranch(@Valid @RequestBody BranchDTO branchDTO) {
+	public ResponseEntity<Branch> addNewBranch(@Valid @RequestBody BranchDTO branchDTO,int retryCount) {
 		log.info(">>>> addNewBranch() called " + branchDTO);
-		Branch response = adminService.addNewBranch(branchDTO);
+		Branch response = adminService.addNewBranch(branchDTO,retryCount);
 		if (response != null) {
-			loginMsgSender.addNewBranchDetails(" NEW BRANCH DETAILS ADDED >>> " + " BRANCH_ID :: "
+			branchDetailsMsgSender.addNewBranchDetails(" NEW BRANCH DETAILS ADDED >>> " + " BRANCH_ID :: "
 					+ response.getBranchId() + " BRACH_NAME :: " + response.getBranchName());
 		}
 		return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -55,7 +57,7 @@ public class BranchResource {
 		log.info("UpdateBranch() called " + branchDTO);
 		Branch response = adminService.updateBranchDetails(branchDTO);
 		if (response != null) {
-			loginMsgSender.updateBranchDetails("Update existing Branch details succesfully >>> BRACH_ID :: "
+			branchDetailsMsgSender.updateBranchDetails("Update existing Branch details succesfully >>> BRACH_ID :: "
 					+ response.getBranchId() + "" + "BRANCH_NAME :: " + response.getBranchName());
 		}
 		return new ResponseEntity<>(response, HttpStatus.OK);

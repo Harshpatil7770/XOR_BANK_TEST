@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.xoriant.bank.dto.BranchDTO;
@@ -18,6 +19,7 @@ import com.xoriant.bank.exception.ElementNotFoundException;
 import com.xoriant.bank.exception.InputUserException;
 import com.xoriant.bank.model.Address;
 import com.xoriant.bank.model.Branch;
+import com.xoriant.bank.model.ErrorCode;
 import com.xoriant.bank.model.Manager;
 import com.xoriant.bank.model.ManagerCredential;
 import com.xoriant.bank.repo.AddressRepo;
@@ -26,12 +28,13 @@ import com.xoriant.bank.repo.ManagerCredentialRepo;
 import com.xoriant.bank.repo.ManagerRepo;
 import com.xoriant.bank.util.ApplicationConstant;
 
+import ch.qos.logback.classic.Logger;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @Component
-public class AdminServiceImpl implements AdminService {
+public class BranchServiceImpl implements BranchService {
 
 	@Autowired
 	private BranchRepo branchRepo;
@@ -45,6 +48,13 @@ public class AdminServiceImpl implements AdminService {
 	@Autowired
 	private ManagerCredentialRepo managerCredentialRepo;
 
+	@Autowired
+	private RuntimeManager runtimeManager;
+
+	private final int RETRY_COUNT = 3;
+	private final int WAIT_TIME = 3000;
+	int retryCount = 0;
+
 	private Branch branch;
 	private Address branchAddress;
 
@@ -53,31 +63,57 @@ public class AdminServiceImpl implements AdminService {
 	private ManagerCredential credential;
 
 	@Override
-	public Branch addNewBranch(@Valid BranchDTO branchDTO) {
-		// ----------- Branch Details --------------//
-		branch = new Branch();
-		branch.setBranchId(branchDTO.getBranchId());
-		branch.setBranchName(branchDTO.getBranchName().toUpperCase());
-		if (branch.getBranchName().isBlank() || branch.getBranchName().isEmpty()) {
-			throw new InputUserException();
-		}
-		branch.setIfscCode(branchDTO.getIfscCode());
-		if (branch.getIfscCode().isBlank() || branch.getIfscCode().isEmpty()) {
-			throw new InputUserException();
-		}
-		// ------- Branch Address Details ----------//
-		log.info("Branch id,name,ifsc code started adding ....");
-		branchAddress = new Address();
-		branchAddress.setAddressId(branchDTO.getAddressDTO().getAddressId());
-		branchAddress.setHouseNumber(branchDTO.getAddressDTO().getHouseNumber());
-		branchAddress.setHouseName(branchDTO.getAddressDTO().getHouseName().toUpperCase());
-		branchAddress.setStreetName(branchDTO.getAddressDTO().getStreetName().toUpperCase());
-		branchAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
-		branch.setAddress(branchAddress);
-		log.info("Branch address details adding ...");
-		log.info(ApplicationConstant.ADD_NEW_BRANCH);
+	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
+	public Branch addNewBranch(@Valid BranchDTO branchDTO, int retryCount) {
+		Branch branchDetails = null;
+		if (branchDTO != null) {
+			try {
+				// ----------- Branch Details --------------//
+				branch = new Branch();
+				branch.setBranchId(branchDTO.getBranchId());
+				branch.setBranchName(branchDTO.getBranchName().toUpperCase());
+				if (branch.getBranchName().isBlank() || branch.getBranchName().isEmpty()) {
+					throw new InputUserException();
+				}
+				branch.setIfscCode(branchDTO.getIfscCode());
+				if (branch.getIfscCode().isBlank() || branch.getIfscCode().isEmpty()) {
+					throw new InputUserException();
+				}
+				// ------- Branch Address Details ----------//
+				log.info("Branch id,name,ifsc code started adding ....");
+				branchAddress = new Address();
+				branchAddress.setAddressId(branchDTO.getAddressDTO().getAddressId());
+				branchAddress.setHouseNumber(branchDTO.getAddressDTO().getHouseNumber());
+				branchAddress.setHouseName(branchDTO.getAddressDTO().getHouseName().toUpperCase());
+				branchAddress.setStreetName(branchDTO.getAddressDTO().getStreetName().toUpperCase());
+				branchAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
+				branch.setAddress(branchAddress);
+				log.info("Branch address details adding ...");
+				log.info(ApplicationConstant.ADD_NEW_BRANCH);
 
-		Branch branchDetails = branchRepo.save(branch);
+				branchDetails = branchRepo.save(branch);
+			} catch (Exception e) {
+				log.info("Exception occured while adding new branch ");
+				if (retryCount < RETRY_COUNT) {
+					try {
+						Thread.sleep(WAIT_TIME * retryCount);
+						log.info("Retrying routing of message count - " + retryCount);
+						retryCount++;
+						addNewBranch(branchDTO, retryCount);
+					} catch (Exception ex) {
+						ex.printStackTrace();
+					}
+				} else {
+					log.info("Reached maximun retry count limit ");
+					log.info("BranchServiceImpl - Exception occured while adding new branch", e);
+					runtimeManager.getErrorController().handleErrorCode(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
+				}
+
+			}
+		} else {
+			log.info("branchDTO is null");
+			throw new InputUserException();
+		}
 		return branchDetails;
 	}
 
@@ -246,15 +282,15 @@ public class AdminServiceImpl implements AdminService {
 		updateManagerDetails.setManagerId(managerDTO.getManagerId());
 		updateManagerDetails.setFirstName(managerDTO.getFirstName().toUpperCase());
 		updateManagerDetails.setLastName(managerDTO.getLastName().toUpperCase());
-		
+
 		// ------- Check entered login id present or not --------//
 		boolean verifyExistingDetails = findManagerCredentialDetails(managerDTO.getCredentialDTO().getId(),
 				managerDTO.getCredentialDTO().getUserName(), managerDTO.getCredentialDTO().getPassword());
-		if(verifyExistingDetails==false) {
+		if (verifyExistingDetails == false) {
 			log.info("Manager Creaditional not matched.");
 			return false;
 		}
-		ManagerCredential updateManagerCredential=new ManagerCredential();
+		ManagerCredential updateManagerCredential = new ManagerCredential();
 		updateManagerCredential.setId(managerDTO.getCredentialDTO().getId());
 		updateManagerCredential.setUserName(managerDTO.getCredentialDTO().getUserName());
 		updateManagerCredential.setPassword(managerDTO.getCredentialDTO().getPassword());
