@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.xoriant.bank.dto.ManagerDTO;
 import com.xoriant.bank.model.Manager;
 import com.xoriant.bank.sender.AdminMsgSender;
-import com.xoriant.bank.service.AdminService;
+import com.xoriant.bank.service.BranchService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ManagerResource {
 
 	@Autowired
-	AdminService adminService;
+	BranchService adminService;
 
 	@Autowired
 	AdminMsgSender adminMsgSender;

@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.xoriant.bank.dto.BranchDTO;
 import com.xoriant.bank.model.Branch;
 import com.xoriant.bank.sender.LoginMsgSender;
-import com.xoriant.bank.service.AdminService;
+import com.xoriant.bank.service.BranchService;
 
 import lombok.extern.slf4j.Slf4j;
 

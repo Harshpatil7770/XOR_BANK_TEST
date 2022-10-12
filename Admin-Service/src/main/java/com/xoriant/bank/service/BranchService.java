@@ -7,9 +7,9 @@ import com.xoriant.bank.dto.ManagerDTO;
 import com.xoriant.bank.model.Branch;
 import com.xoriant.bank.model.Manager;
 
-public interface AdminService {
+public interface BranchService {
 
-	Branch addNewBranch(BranchDTO branchDTO);
+	Branch addNewBranch(BranchDTO branchDTO,int retryCount);
 	
 	List<Branch> findAllBranchesWithAddressDetails();
 

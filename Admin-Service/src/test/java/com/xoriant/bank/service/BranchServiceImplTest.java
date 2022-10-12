@@ -21,13 +21,13 @@ import com.xoriant.bank.model.Branch;
 import com.xoriant.bank.repo.BranchRepo;
 
 @ExtendWith(MockitoExtension.class)
-public class AdminServiceImplTest {
+public class BranchServiceImplTest {
 
 	@Mock
 	private BranchRepo branchRepo;
 
 	@InjectMocks
-	private AdminServiceImpl adminServiceImpl;
+	private BranchServiceImpl adminServiceImpl;
 
 	private Branch branch;
 
