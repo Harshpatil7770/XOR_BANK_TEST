@@ -3,21 +3,31 @@ package com.xoriant.bank.model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.xoriant.bank.service.ErrorCommond;
+import com.xoriant.bank.service.RuntimeManager;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class ErrorController {
+public class ErrorController implements RuntimeManager {
 
 	@Autowired
 	private ShutDownCmd shutDownCmd;
 
-	public void handleErrorCode(ErrorCode errorCode) {
+	public void getErrorController(ErrorCode errorCode) {
 		switch (errorCode) {
 		case NEW_BRANCH_ADDITION_FAILED: {
 			log.error("ErrorController - Error occured while adding new branch");
+			processShutDownCmd(errorCode);
+			break;
+		}
+		case EXISTING_BRANCH_UPDATION_FAILED: {
+			log.error("ErrorController - Error occured while updating existing branch");
+			processShutDownCmd(errorCode);
+			break;
+		}
+		case PUBLISHING_MSG_TO_QUEUE_FAILED: {
+			log.error("ErrorController- Error occured while publishing message to queue");
 			processShutDownCmd(errorCode);
 			break;
 		}
@@ -30,4 +40,5 @@ public class ErrorController {
 		shutDownCmd.loadError(errorCode.getErrorCode(), errorCode.getDescription());
 		shutDownCmd.processError();
 	}
+
 }

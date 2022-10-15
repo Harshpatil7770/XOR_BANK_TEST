@@ -48,8 +48,11 @@ public class BranchServiceImpl implements BranchService {
 	@Autowired
 	private ManagerCredentialRepo managerCredentialRepo;
 
-	@Autowired
+	@Autowired(required = false)
 	private RuntimeManager runtimeManager;
+
+	@Autowired
+	private BranchServiceImplDetails branchServiceImplDetails;
 
 	private final int RETRY_COUNT = 3;
 	private final int WAIT_TIME = 3000;
@@ -63,99 +66,55 @@ public class BranchServiceImpl implements BranchService {
 	private ManagerCredential credential;
 
 	@Override
-	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	public Branch addNewBranch(@Valid BranchDTO branchDTO, int retryCount) {
-		Branch branchDetails = null;
+	public boolean addNewBranch(@Valid BranchDTO branchDTO) {
+		boolean branchDetails = false;
 		if (branchDTO != null) {
-			try {
-				// ----------- Branch Details --------------//
-				branch = new Branch();
-				branch.setBranchId(branchDTO.getBranchId());
-				branch.setBranchName(branchDTO.getBranchName().toUpperCase());
-				if (branch.getBranchName().isBlank() || branch.getBranchName().isEmpty()) {
-					throw new InputUserException();
-				}
-				branch.setIfscCode(branchDTO.getIfscCode());
-				if (branch.getIfscCode().isBlank() || branch.getIfscCode().isEmpty()) {
-					throw new InputUserException();
-				}
-				// ------- Branch Address Details ----------//
-				log.info("Branch id,name,ifsc code started adding ....");
-				branchAddress = new Address();
-				branchAddress.setAddressId(branchDTO.getAddressDTO().getAddressId());
-				branchAddress.setHouseNumber(branchDTO.getAddressDTO().getHouseNumber());
-				branchAddress.setHouseName(branchDTO.getAddressDTO().getHouseName().toUpperCase());
-				branchAddress.setStreetName(branchDTO.getAddressDTO().getStreetName().toUpperCase());
-				branchAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
-				branch.setAddress(branchAddress);
-				log.info("Branch address details adding ...");
-				log.info(ApplicationConstant.ADD_NEW_BRANCH);
-
-				branchDetails = branchRepo.save(branch);
-			} catch (Exception e) {
-				log.info("Exception occured while adding new branch ");
-				if (retryCount < RETRY_COUNT) {
-					try {
-						Thread.sleep(WAIT_TIME * retryCount);
-						log.info("Retrying routing of message count - " + retryCount);
-						retryCount++;
-						addNewBranch(branchDTO, retryCount);
-					} catch (Exception ex) {
-						ex.printStackTrace();
-					}
-				} else {
-					log.info("Reached maximun retry count limit ");
-					log.info("BranchServiceImpl - Exception occured while adding new branch", e);
-					runtimeManager.getErrorController().handleErrorCode(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
-				}
-
-			}
+			branchDetails = addNewBranchDetails(branchDTO);
 		} else {
-			log.info("branchDTO is null");
-			throw new InputUserException();
+			log.info("branchDTO is null. no need to further proceed.");
+			branchDetails = false;
+		}
+		return branchDetails;
+	}
+
+	private boolean addNewBranchDetails(BranchDTO branchDTO) {
+		boolean branchDetails = false;
+		try {
+			branchDetails = branchServiceImplDetails.addNewBranchDetails(branchDTO);
+		} catch (Exception e) {
+			branchDetails = false;
+			log.info("Exception occured while adding new Branch details " + e);
+			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
 		}
 		return branchDetails;
 	}
 
 	@Override
-	public Branch updateBranchDetails(BranchDTO branchDTO) {
-		// ----------- Check weather the branch present or not ----------------//
-		Optional<Branch> existingBranchDetails = branchRepo.findById(branchDTO.getBranchId());
-		if (!existingBranchDetails.isPresent()) {
-			throw new ElementNotFoundException();
+	public boolean updateBranchDetails(BranchDTO branchDTO) {
+		boolean branchDetails = false;
+		if (branchDTO != null) {
+			branchDetails = updateExistingBranch(branchDTO);
+		} else {
+			log.info("branchDTO is null. No need to proceed further");
+			branchDetails = false;
 		}
-		log.info("Entered branch_id is present moving further ....");
-		// ----------- Update the existing branch details --------------------//
-		Branch updateBranch = branchRepo.findById(branchDTO.getBranchId()).orElse(null);
-		updateBranch.setBranchId(branchDTO.getBranchId());
-		updateBranch.setBranchName(branchDTO.getBranchName().toUpperCase());
-		if (branch.getBranchName().isBlank() || branch.getBranchName().isEmpty()) {
-			throw new InputUserException();
-		}
-		updateBranch.setIfscCode(branchDTO.getIfscCode().toUpperCase());
-		if (branch.getIfscCode().isBlank() || branch.getIfscCode().isEmpty()) {
-			throw new InputUserException();
-		}
+		return branchDetails;
+	}
 
-		// ----------- Check weather the branch address present or not--------//
-		Optional<Address> existingBranchAddress = addressRepo.findById(branchDTO.getAddressDTO().getAddressId());
-		if (!existingBranchAddress.isPresent()) {
-			throw new ElementNotFoundException();
+	private boolean updateExistingBranch(BranchDTO branchDTO) {
+		boolean branchDetails = false;
+		try {
+			branchDetails = branchServiceImplDetails.updateExistingBranch(branchDTO);
+		} catch (Exception e) {
+			branchDetails = false;
+			log.info("Exception occured while updating existing branch details " + e);
+			runtimeManager.getErrorController(ErrorCode.EXISTING_BRANCH_UPDATION_FAILED);
 		}
-		// ----------- Update the existing address details --------------------//
-		Address updateAddress = addressRepo.findById(branchDTO.getAddressDTO().getAddressId()).orElse(null);
-		updateAddress.setAddressId(branchDTO.getAddressDTO().getAddressId());
-		updateAddress.setHouseNumber(branchDTO.getAddressDTO().getHouseNumber());
-		updateAddress.setHouseName(branchDTO.getAddressDTO().getHouseName().toUpperCase());
-		updateAddress.setStreetName(branchDTO.getAddressDTO().getStreetName().toUpperCase());
-		updateAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
-		updateBranch.setAddress(updateAddress);
-		log.info(ApplicationConstant.UPDATE_BRANCH_DETAILS);
-		Branch updatedExistingBranch = branchRepo.save(updateBranch);
-		return updatedExistingBranch;
+		return branchDetails;
 	}
 
 	@Override
+	@Cacheable(value = "adminServiceImplCache")
 	public List<Branch> fetchAllBranch() {
 		List<Branch> existingBranchLists = branchRepo.findAll();
 		if (existingBranchLists.isEmpty()) {
@@ -170,8 +129,9 @@ public class BranchServiceImpl implements BranchService {
 	public Branch findByBranchId(long branchId) {
 		Branch existingBrand = branchRepo.findById(branchId).orElse(null);
 		if (existingBrand == null) {
-			log.info("Branch details not available for branchId " + branchId);
-			throw new ElementNotFoundException();
+			log.info("Entered Branch Id :: " + branchId
+					+ "  details not available in system. No need to proceed further.");
+			return null;
 		}
 		log.info("Branch details found for the entered branchId " + branchId);
 		return existingBrand;
@@ -182,23 +142,30 @@ public class BranchServiceImpl implements BranchService {
 	public Branch findBranchByName(String branchName) {
 		Branch existingBranchDetails = branchRepo.findByBranchName(branchName.toUpperCase()).orElse(null);
 		if (existingBranchDetails == null) {
-			log.info("Branch details not avaliable for the entered branchName " + branchName);
-			throw new ElementNotFoundException();
+			log.info("Entered branch name  " + branchName + " . Branch details not avaible for this name."
+					+ "No Need to proceed further.");
+			return null;
 		}
 		log.info("Branch details avaliable for the entered branchName " + branchName);
 		return existingBranchDetails;
 	}
 
 	@Override
-	@Cacheable(value = "adminServiceImplCache", key = "#branchId")
+	/*
+	 * once you delete any branchId=21 and after that also you called this method so
+	 * it will give same response, so no need to write cacheable here
+	 */
+//	@Cacheable(value = "adminServiceImplCache", key = "#branchId")
+	@Transactional
 	public boolean deleteBranch(long branchId) {
-		Optional<Branch> existingBranchDetails = branchRepo.findById(branchId);
-		if (!existingBranchDetails.isPresent()) {
-			log.info("Entered branch id " + branchId + " is not present in database");
+		Branch existingBranch = branchRepo.findById(branchId).orElse(null);
+		if (existingBranch == null) {
+			log.info("Entered branch id is not present in database. No need to further Proceed.");
 			return false;
 		}
-		log.info("Entered branchId " + branchId + " is present in database");
 		branchRepo.deleteById(branchId);
+		branchServiceImplDetails
+				.deleteExistingBranch("Deleted Existing Branch Succesfully -  BRANCH_ID ::  " + branchId);
 		return true;
 	}
 
@@ -520,8 +487,8 @@ public class BranchServiceImpl implements BranchService {
 	public List<Branch> findAllBranchesWithAddressDetails() {
 		List<Branch> existingBranchDetails = branchRepo.findAllBranchesWithAddressDetails();
 		if (existingBranchDetails == null) {
-			log.info("Branch Details not found in database.");
-			throw new ElementNotFoundException();
+			log.info("Branch Details not found in database. No need to proceed further.");
+			return null;
 		}
 		log.info("Branch and their address details present in database");
 		return existingBranchDetails;

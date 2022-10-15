@@ -29,7 +29,7 @@ public class ShutDownCmd implements ErrorCommond {
 	public void processError() {
 		log.error("**************************************************************************************");
 		log.error("************************** Admin-Service Is Shutting Down ****************************");
-		log.error("****** errorCode " + errorCode + " description - " + description);
+		log.error("****** errorCode ::  " + errorCode + " description :: " + description);
 		shutDownManager.initiateShutDowm(errorCode);
 		log.error("************************* ADMIN_SERVICE SHUTDOWN COMPLETED **********************");
 		System.exit(0);
