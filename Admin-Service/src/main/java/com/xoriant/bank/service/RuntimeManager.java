@@ -1,8 +1,8 @@
 package com.xoriant.bank.service;
 
-import com.xoriant.bank.model.ErrorController;
+import com.xoriant.bank.model.ErrorCode;
 
 public interface RuntimeManager {
 
-	public ErrorController getErrorController();
+	public void getErrorController(ErrorCode errorCode);
 }

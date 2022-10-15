@@ -19,11 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.xoriant.bank.dto.BranchDTO;
-import com.xoriant.bank.dto.ManagerDTO;
 import com.xoriant.bank.model.Branch;
-import com.xoriant.bank.model.Manager;
-import com.xoriant.bank.sender.AdminMsgSender;
+import com.xoriant.bank.model.ErrorCode;
 import com.xoriant.bank.service.BranchService;
+import com.xoriant.bank.service.RuntimeManager;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,65 +36,85 @@ public class BranchResource {
 	private BranchService adminService;
 
 	@Autowired
-	private AdminMsgSender branchDetailsMsgSender;
-	
-	int retryCount=0;
+	private RuntimeManager runtimeManager;
 
 	@PostMapping("/save")
-	public ResponseEntity<Branch> addNewBranch(@Valid @RequestBody BranchDTO branchDTO,int retryCount) {
-		log.info(">>>> addNewBranch() called " + branchDTO);
-		Branch response = adminService.addNewBranch(branchDTO,retryCount);
-		if (response != null) {
-			branchDetailsMsgSender.addNewBranchDetails(" NEW BRANCH DETAILS ADDED >>> " + " BRANCH_ID :: "
-					+ response.getBranchId() + " BRACH_NAME :: " + response.getBranchName());
+	public ResponseEntity<String> addNewBranch(@Valid @RequestBody BranchDTO branchDTO) {
+		try {
+			log.info(">>>> addNewBranch() called " + branchDTO);
+			boolean response = adminService.addNewBranch(branchDTO);
+			if (response == true) {
+				return new ResponseEntity<>("New Branch Details Added Succesfully ", HttpStatus.CREATED);
+			}
+		} catch (Exception e) {
+			log.info("BranchResource - exception occured while adding new branch " + e);
+			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
 		}
-		return new ResponseEntity<>(response, HttpStatus.CREATED);
+		return new ResponseEntity<>("Unable to add new branch details ", HttpStatus.CREATED);
 	}
 
-	@PutMapping("/update/branch")
-	public ResponseEntity<Branch> updateBranchDetails(@Valid @RequestBody BranchDTO branchDTO) {
-		log.info("UpdateBranch() called " + branchDTO);
-		Branch response = adminService.updateBranchDetails(branchDTO);
-		if (response != null) {
-			branchDetailsMsgSender.updateBranchDetails("Update existing Branch details succesfully >>> BRACH_ID :: "
-					+ response.getBranchId() + "" + "BRANCH_NAME :: " + response.getBranchName());
+	@PutMapping("/update")
+	public ResponseEntity<String> updateBranchDetails(@Valid @RequestBody BranchDTO branchDTO) {
+		try {
+			log.info("UpdateBranch() called " + branchDTO);
+			boolean response = adminService.updateBranchDetails(branchDTO);
+			if (response == true) {
+				return new ResponseEntity<>("Updated Exsiting Branch Details Succesfully ", HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			log.info("BranchResource - exception occured while updating existing branch details " + e);
+			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
 		}
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ResponseEntity<>("Unable to update the existing branch details ", HttpStatus.OK);
 	}
 
 	@GetMapping("/findAll/branches")
 	public ResponseEntity<List<Branch>> findAllBranchesWithAddressDetails() {
-		log.info("findAllBranchesWithAddressDetails() called ");
-		List<Branch> response = adminService.findAllBranchesWithAddressDetails();
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		try {
+			log.info("findAllBranchesWithAddressDetails() called ");
+			List<Branch> response = adminService.findAllBranchesWithAddressDetails();
+			if (response != null)
+				return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.info("Exception occured while fetching all branch details", e);
+		}
+		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}
 
 	@GetMapping("/find-branch/{branchId}")
 	public ResponseEntity<Branch> findByBranchId(@PathVariable long branchId) {
 		log.info("findByBranchId() called ");
 		Branch response = adminService.findByBranchId(branchId);
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		if (response == null)
+			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+		else
+			return new ResponseEntity<>(response, HttpStatus.OK);
 	}
 
 	@GetMapping("/find-branch")
 	public ResponseEntity<Branch> findBranchByName(@RequestParam String branchName) {
 		log.info("findBranchByName() called ");
 		Branch response = adminService.findBranchByName(branchName);
-		return new ResponseEntity<Branch>(response, HttpStatus.OK);
+		if (response != null)
+			return new ResponseEntity<>(response, HttpStatus.OK);
+		else
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}
 
 	@DeleteMapping("/delete-branch")
 	public ResponseEntity<String> deleteBranch(@RequestParam long branchId) {
-		log.info("deleteBranch() called");
-		boolean response = adminService.deleteBranch(branchId);
-		if (!response) {
-			log.info("Entered Branch Id = " + branchId + " details not present in system");
-			return new ResponseEntity<>("Entered Branch Id = " + branchId + " details not present in system",
-					HttpStatus.OK);
+		try {
+			log.info("deleteBranch() called");
+			boolean response = adminService.deleteBranch(branchId);
+			if (response == true) {
+				return new ResponseEntity<>("Entered Branch Id = " + branchId + " removed succesfully from system",
+						HttpStatus.OK);
+			}
+		} catch (Exception e) {
+			log.info("BranchResource - exception occured while deleting existing branch details " + e);
+			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
 		}
-		log.info("Entered Branch Id = " + branchId + " details not present in system removed succesfully from system");
-		return new ResponseEntity<>("Entered Branch Id = " + branchId + " removed succesfully from system",
-				HttpStatus.OK);
+		return new ResponseEntity<>("Unable to delete Existing Branch details", HttpStatus.OK);
 	}
 
 	

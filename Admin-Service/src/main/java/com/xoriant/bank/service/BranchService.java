@@ -9,11 +9,11 @@ import com.xoriant.bank.model.Manager;
 
 public interface BranchService {
 
-	Branch addNewBranch(BranchDTO branchDTO,int retryCount);
+	boolean addNewBranch(BranchDTO branchDTO);
 	
 	List<Branch> findAllBranchesWithAddressDetails();
 
-	Branch updateBranchDetails(BranchDTO branchDTO);
+	boolean updateBranchDetails(BranchDTO branchDTO);
 
 	List<Branch> fetchAllBranch();
 
