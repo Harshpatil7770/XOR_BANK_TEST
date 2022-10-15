@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class BranchResource {
 
 	@Autowired
-	private BranchService adminService;
+	private BranchService branchService;
 
 	@Autowired
 	private RuntimeManager runtimeManager;
@@ -42,7 +42,7 @@ public class BranchResource {
 	public ResponseEntity<String> addNewBranch(@Valid @RequestBody BranchDTO branchDTO) {
 		try {
 			log.info(">>>> addNewBranch() called " + branchDTO);
-			boolean response = adminService.addNewBranch(branchDTO);
+			boolean response = branchService.addNewBranch(branchDTO);
 			if (response == true) {
 				return new ResponseEntity<>("New Branch Details Added Succesfully ", HttpStatus.CREATED);
 			}
@@ -57,7 +57,7 @@ public class BranchResource {
 	public ResponseEntity<String> updateBranchDetails(@Valid @RequestBody BranchDTO branchDTO) {
 		try {
 			log.info("UpdateBranch() called " + branchDTO);
-			boolean response = adminService.updateBranchDetails(branchDTO);
+			boolean response = branchService.updateBranchDetails(branchDTO);
 			if (response == true) {
 				return new ResponseEntity<>("Updated Exsiting Branch Details Succesfully ", HttpStatus.OK);
 			}
@@ -72,7 +72,7 @@ public class BranchResource {
 	public ResponseEntity<List<Branch>> findAllBranchesWithAddressDetails() {
 		try {
 			log.info("findAllBranchesWithAddressDetails() called ");
-			List<Branch> response = adminService.findAllBranchesWithAddressDetails();
+			List<Branch> response = branchService.findAllBranchesWithAddressDetails();
 			if (response != null)
 				return new ResponseEntity<>(response, HttpStatus.OK);
 		} catch (Exception e) {
@@ -84,7 +84,7 @@ public class BranchResource {
 	@GetMapping("/find-branch/{branchId}")
 	public ResponseEntity<Branch> findByBranchId(@PathVariable long branchId) {
 		log.info("findByBranchId() called ");
-		Branch response = adminService.findByBranchId(branchId);
+		Branch response = branchService.findByBranchId(branchId);
 		if (response == null)
 			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 		else
@@ -94,7 +94,7 @@ public class BranchResource {
 	@GetMapping("/find-branch")
 	public ResponseEntity<Branch> findBranchByName(@RequestParam String branchName) {
 		log.info("findBranchByName() called ");
-		Branch response = adminService.findBranchByName(branchName);
+		Branch response = branchService.findBranchByName(branchName);
 		if (response != null)
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		else
@@ -105,7 +105,7 @@ public class BranchResource {
 	public ResponseEntity<String> deleteBranch(@RequestParam long branchId) {
 		try {
 			log.info("deleteBranch() called");
-			boolean response = adminService.deleteBranch(branchId);
+			boolean response = branchService.deleteBranch(branchId);
 			if (response == true) {
 				return new ResponseEntity<>("Entered Branch Id = " + branchId + " removed succesfully from system",
 						HttpStatus.OK);
