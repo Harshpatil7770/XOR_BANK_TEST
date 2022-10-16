@@ -8,8 +8,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.xoriant.bank.dto.BranchDTO;
-import com.xoriant.bank.exception.ElementNotFoundException;
-import com.xoriant.bank.exception.InputUserException;
 import com.xoriant.bank.model.Address;
 import com.xoriant.bank.model.Branch;
 import com.xoriant.bank.model.ErrorCode;
@@ -19,7 +17,7 @@ import com.xoriant.bank.repo.AddressRepo;
 import com.xoriant.bank.repo.BranchRepo;
 import com.xoriant.bank.repo.ManagerCredentialRepo;
 import com.xoriant.bank.repo.ManagerRepo;
-import com.xoriant.bank.sender.service.BranchInfoMsgSender;
+import com.xoriant.bank.sender.service.BranchInfoMsgService;
 import com.xoriant.bank.util.ApplicationConstant;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +42,7 @@ public class BranchServiceImplDetails {
 	private RuntimeManager runtimeManager;
 
 	@Autowired
-	private BranchInfoMsgSender branchInfoMsgService;
+	private BranchInfoMsgService branchInfoMsgService;
 
 	private final int RETRY_COUNT = 3;
 	private final int WAIT_TIME = 3000;
