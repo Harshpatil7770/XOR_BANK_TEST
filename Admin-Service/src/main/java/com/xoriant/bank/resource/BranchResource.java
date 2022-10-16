@@ -121,11 +121,7 @@ public class BranchResource {
 //	public ResponseEntity<Manager> addNewManager(ManagerDTO managerDTO)
 
 //	Manager updateManagerDetails(ManagerDTO managerDTO);
-//
-//	List<Manager> addNewListsOfManager(List<ManagerDTO> managerDTOLists);
-//
-//	List<Manager> updateListsOfManager(List<ManagerDTO> managerDTOLists);
-//
+
 //	List<Manager> fetchAllManagerDetails();
 //
 //	Manager findByManagerId(long managerId);

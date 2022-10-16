@@ -8,8 +8,6 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.xoriant.bank.dto.BranchDTO;
-import com.xoriant.bank.exception.ElementNotFoundException;
-import com.xoriant.bank.exception.InputUserException;
 import com.xoriant.bank.model.Address;
 import com.xoriant.bank.model.Branch;
 import com.xoriant.bank.model.ErrorCode;
