@@ -1,6 +1,7 @@
 package com.xoriant.bank.repo;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +26,8 @@ public interface ManagerRepo extends JpaRepository<Manager, Long> {
 			+ "inner join common_address ba on m.branch_id=ba.address_id inner join manager_creaditional mc on\r\n"
 			+ "m.login_id=mc.id;", nativeQuery = true)
 	List<Manager> findAllManagerWithTheirBranchDetails();
+
+	Manager findByFirstNameAndLastName(String firstName, String lastName);
+
+	Optional<Manager> findByBranchId(long branchId);
 }

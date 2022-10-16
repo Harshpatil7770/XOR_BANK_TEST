@@ -23,23 +23,23 @@ public interface BranchService {
 
 	boolean deleteBranch(long branchId);
 
-	Manager addNewManager(ManagerDTO managerDTO);
-
-	boolean updateManagerDetails(ManagerDTO managerDTO);
-
-	List<Manager> addNewListsOfManager(List<ManagerDTO> managerDTOLists);
-
-	List<Manager> updateListsOfManager(List<ManagerDTO> managerDTOLists);
-
-	List<Manager> fetchAllManagerDetails();
-
-	boolean findManagerById(long managerId);
-
-	Manager findByFirstNameAndLastName(String firstName, String lastName);
-
-	List<Manager> fetchAllManagerListsInAlphabeticalOrder();
-
-	Manager findManagerByBranchId(long branchId);
-
-	void deleteManager(long managerId);
+//	Manager addNewManager(ManagerDTO managerDTO);
+//
+//	boolean updateManagerDetails(ManagerDTO managerDTO);
+//
+//	List<Manager> addNewListsOfManager(List<ManagerDTO> managerDTOLists);
+//
+//	List<Manager> updateListsOfManager(List<ManagerDTO> managerDTOLists);
+//
+//	List<Manager> fetchAllManagerDetails();
+//
+//	boolean findManagerById(long managerId);
+//
+//	Manager findByFirstNameAndLastName(String firstName, String lastName);
+//
+//	List<Manager> fetchAllManagerListsInAlphabeticalOrder();
+//
+//	Manager findManagerByBranchId(long branchId);
+//
+//	void deleteManager(long managerId);
 }

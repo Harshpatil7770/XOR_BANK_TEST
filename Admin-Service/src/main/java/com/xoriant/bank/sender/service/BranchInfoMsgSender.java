@@ -12,7 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class BranchInfoMsgService {
+public class BranchInfoMsgSender {
 
 	@Autowired
 	private RabbitTemplate rabbitTemplate;

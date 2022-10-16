@@ -19,7 +19,7 @@ import com.xoriant.bank.repo.AddressRepo;
 import com.xoriant.bank.repo.BranchRepo;
 import com.xoriant.bank.repo.ManagerCredentialRepo;
 import com.xoriant.bank.repo.ManagerRepo;
-import com.xoriant.bank.sender.service.BranchInfoMsgService;
+import com.xoriant.bank.sender.service.BranchInfoMsgSender;
 import com.xoriant.bank.util.ApplicationConstant;
 
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class BranchServiceImplDetails {
 	private RuntimeManager runtimeManager;
 
 	@Autowired
-	private BranchInfoMsgService branchInfoMsgService;
+	private BranchInfoMsgSender branchInfoMsgService;
 
 	private final int RETRY_COUNT = 3;
 	private final int WAIT_TIME = 3000;
