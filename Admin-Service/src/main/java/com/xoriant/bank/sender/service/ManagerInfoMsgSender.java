@@ -1,5 +1,9 @@
 package com.xoriant.bank.sender.service;
 
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,32 +12,35 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Component
-@Slf4j
 public class ManagerInfoMsgSender {
+
+	Logger logger = LoggerFactory.getLogger(ManagerInfoMsgSender.class);
 
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
-	
+
 	@Value("${managerOutQueue}")
 	private String managerOutQueue;
-	
+
 	@Bean
 	public Queue managerDetails() {
 		return new Queue(managerOutQueue, false);
 	}
-	
+
+	// while sending msg to queue it must be final
 	@Transactional
-	public void managerDetails(String managerInfo)  {
-		log.info("Sending message to queue....");
-		long startTime=System.currentTimeMillis();
-		rabbitTemplate.convertAndSend(managerOutQueue, managerInfo);
-		long endTime=System.currentTimeMillis();
-		log.info("Sent message to queue succesfully");
-		long requiredTime=endTime-startTime;
-		System.out.println("Total time required to send msg to queue is :: "+requiredTime+" milliseconds");
+	public <T extends Serializable> void managerDetails(final T msg) {
+		try {
+			logger.info("Manager Queue Name >>> {} ", managerOutQueue);
+			long startTime = System.currentTimeMillis();
+			rabbitTemplate.convertAndSend(managerOutQueue, msg);
+			logger.info("Sent message to queue succesfully");
+			logger.info("Time taken to put message into queue {} millseconds ", System.currentTimeMillis()-startTime);
+			logger.info(" *********** Succesfully published message to Manager Queue ***********");
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
-	
+
 }

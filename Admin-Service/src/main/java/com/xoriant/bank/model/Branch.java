@@ -26,6 +26,11 @@ import java.io.Serializable;
 @Table(name = "branch_details")
 public class Branch implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long branchId;

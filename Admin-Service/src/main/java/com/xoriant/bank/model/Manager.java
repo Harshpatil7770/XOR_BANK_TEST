@@ -26,6 +26,11 @@ import lombok.NoArgsConstructor;
 @Table(name = "manager_basic_details")
 public class Manager implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long managerId;
