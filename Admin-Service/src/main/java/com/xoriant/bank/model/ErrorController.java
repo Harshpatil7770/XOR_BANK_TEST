@@ -31,6 +31,21 @@ public class ErrorController implements RuntimeManager {
 			processShutDownCmd(errorCode);
 			break;
 		}
+		case NEW_MANAGER_ADDITION_FAILED: {
+			log.error("ErrorController- Error occured while adding new manager details");
+			processShutDownCmd(errorCode);
+			break;
+		}
+		case FAILED_FETCHING_MANAGER_DETAILS: {
+			log.error("ErrorController - Error occured while fetching data from database");
+			processShutDownCmd(errorCode);
+			break;
+		}
+		case FAILED_UPDATING_THE_DETAILS: {
+			log.error("ErrorController - Error occured while updating the details");
+			processShutDownCmd(errorCode);
+			break;
+		}
 		default:
 			log.info("No Handler is found " + errorCode.getErrorCode() + " " + errorCode.getDescription());
 		}
