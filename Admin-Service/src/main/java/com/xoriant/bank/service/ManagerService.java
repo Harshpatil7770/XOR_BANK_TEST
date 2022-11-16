@@ -7,7 +7,7 @@ import com.xoriant.bank.model.Manager;
 
 public interface ManagerService {
 
-	Manager addNewManager(ManagerDTO managerDTO);
+	Manager addNewManager(ManagerDTO managerDTO) ;
 
 	Manager updateManagerDetails(ManagerDTO managerDTO);
 

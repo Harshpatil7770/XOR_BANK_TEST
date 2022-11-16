@@ -1,8 +1,15 @@
 package com.xoriant.bank.service;
 
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xoriant.bank.dto.ManagerDTO;
 import com.xoriant.bank.exception.ElementNotFoundException;
 import com.xoriant.bank.exception.InputUserException;
@@ -24,6 +34,7 @@ import com.xoriant.bank.model.ManagerCredential;
 import com.xoriant.bank.repo.BranchRepo;
 import com.xoriant.bank.repo.ManagerRepo;
 import com.xoriant.bank.util.ApplicationConstant;
+import com.xoriant.bank.util.RandomValue;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,11 +55,46 @@ public class ManagerServiceImpl implements ManagerService {
 	@Autowired
 	private RuntimeManager runtimeManager;
 
+	@Autowired
+	private RandomValue randomValue;
+
 	@Value("${XOR_RETRY_COUNT}")
 	private int XOR_RETRY_COUNT;
 
 	@Value("${XOR_WAIT_TIME}")
 	private long XOR_WAIT_TIME;
+
+	ObjectMapper objectMapper = new ObjectMapper();
+
+	private Map<Long, Queue<ManagerDTO>> basicDetailsMap;
+
+	// It called only once, after the intilization of bean
+	@PostConstruct
+	public void init() {
+
+		// while completing the complete transaction we will put data in map.
+		basicDetailsMap = new ConcurrentHashMap<Long, Queue<ManagerDTO>>();
+
+		// while deserilization if any properties of filed missing it will ignore it
+		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+	}
+
+	private void removeDataFromInstructionSeqMap(ManagerDTO managerDTO) {
+		logger.info("Processing of message is completed. Removing it from In Memory Map");
+		synchronized (basicDetailsMap) {
+			Long key = managerDTO.getManagerId();
+
+			if (key != null && basicDetailsMap.containsKey(key)) {
+				logger.info("checking basic details map for sequence key - {} ", key);
+				if (basicDetailsMap.get(key).isEmpty()) {
+					logger.info("sequence key removed from basic details map - {}", key);
+					basicDetailsMap.remove(key);
+				}
+			}
+
+		}
+	}
 
 	@Override
 	public Manager addNewManager(ManagerDTO managerDTO) {
@@ -57,31 +103,30 @@ public class ManagerServiceImpl implements ManagerService {
 	}
 
 	private Manager addNewManagerDetails(ManagerDTO managerDTO, int retryCount) {
+//		long uniqueValue = randomValue.getRandomValue();
+//		managerDTO.setManagerId(uniqueValue);
+//		basicDetailsMap.put(managerDTO.getManagerId(), new LinkedList<ManagerDTO>());
+//		System.out.println(basicDetailsMap);
 		Manager managerDetails = null;
-		try {
-			if (managerDTO != null) {
-				try {
-					managerDetails = managerServiceImplDetails.addNewManager(managerDTO);
-				} catch (Exception e) {
-					logger.error("ManagerServiceImpl - Exception occured while adding new Manger details ", e);
-					throw new RuntimeException();
-				}
-			} else {
-				logger.info("ManagerDTO is null. No need to proceed further.");
-				return managerDetails;
-			}
-		} catch (Exception e) {
-			logger.error("ManagerResource - Exception occured while adding new manager details ", e);
-			if (retryCount < XOR_RETRY_COUNT) {
-				retryCount++;
-				logger.info("ManagerResource - Retrying routing of message count {} ", retryCount);
-				addNewManagerDetails(managerDTO, retryCount);
-			} else {
-				logger.info("ManagerResource - Maximum message routing retry count is reached {} ", retryCount);
-				runtimeManager.getErrorController(ErrorCode.NEW_MANAGER_ADDITION_FAILED);
-			}
+//		try {
+		if (managerDTO != null) {
+			managerDetails = managerServiceImplDetails.addNewManager(managerDTO);
 
+			return managerDetails;
 		}
+//		} catch (Exception e) {
+//			logger.error("ManagerResource - Exception occured while adding new manager details ", e);
+//			if (retryCount < XOR_RETRY_COUNT) {
+//				retryCount++;
+//				logger.info("ManagerResource - Retrying routing of message count {} ", retryCount);
+//				addNewManagerDetails(managerDTO, retryCount);
+//			} else {
+//				logger.info("ManagerResource - Maximum message routing retry count is reached {} ", retryCount);
+//				runtimeManager.getErrorController(ErrorCode.NEW_MANAGER_ADDITION_FAILED);
+//			}
+//
+//		}
+		logger.info("Manager Details is null. No need to proceed further.");
 		return managerDetails;
 	}
 
@@ -91,11 +136,16 @@ public class ManagerServiceImpl implements ManagerService {
 		return updatedManagerDetails;
 	}
 
+	//putting managerDTO in map once process completed will remove from it.
 	private Manager updateExistingManagerDetails(ManagerDTO managerDTO, int retryCount) {
+		basicDetailsMap.put(managerDTO.getManagerId(), new LinkedList<ManagerDTO>());
 		try {
 			Manager updateManager = null;
 			if (managerDTO != null) {
-				updateManager = managerServiceImplDetails.updateManagerDetails(managerDTO);
+				ManagerDTO clonedManagerDTO = objectMapper.convertValue(managerDTO, new TypeReference<ManagerDTO>() {
+				});
+				updateManager = managerServiceImplDetails.updateManagerDetails(clonedManagerDTO);
+				removeDataFromInstructionSeqMap(managerDTO);
 				return updateManager;
 			}
 		} catch (Exception e) {
@@ -138,6 +188,8 @@ public class ManagerServiceImpl implements ManagerService {
 		return existingManagerDetails;
 	}
 
+	//Added Thread.sleep(); because while connection to db if any exception occured or take
+	//some time that's why
 	private List<Manager> fetchAllPresentExistingManagerDetails(int retryCount) {
 		List<Manager> existingManagerLists = null;
 		try {
