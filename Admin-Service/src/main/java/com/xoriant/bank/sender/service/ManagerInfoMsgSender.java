@@ -30,17 +30,15 @@ public class ManagerInfoMsgSender {
 
 	// while sending msg to queue it must be final
 	@Transactional
-	public <T extends Serializable> void managerDetails(final T msg) {
-		try {
+	public <T extends Serializable> void managerDetails(final T msg) throws Exception{
+
 			logger.info("Manager Queue Name >>> {} ", managerOutQueue);
 			long startTime = System.currentTimeMillis();
 			rabbitTemplate.convertAndSend(managerOutQueue, msg);
 			logger.info("Sent message to queue succesfully");
 			logger.info("Time taken to put message into queue {} millseconds ", System.currentTimeMillis()-startTime);
 			logger.info(" *********** Succesfully published message to Manager Queue ***********");
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.xoriant.bank.resource;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xoriant.bank.dto.ManagerDTO;
 import com.xoriant.bank.model.Manager;
 import com.xoriant.bank.service.ManagerService;
@@ -40,7 +43,6 @@ public class ManagerResource {
 	@Value("${XOR_RETRY_COUNT}")
 	private int XOR_RETRY_COUNT;
 
-	// we are not direct connect to mq or db so no need to add thread wait time.
 	@PostMapping("/save")
 	public ResponseEntity<Manager> addNewManager(@Valid @RequestBody ManagerDTO managerDTO) {
 		Manager response = managerService.addNewManager(managerDTO);
@@ -64,8 +66,7 @@ public class ManagerResource {
 	}
 
 	@PutMapping("/update")
-	public ResponseEntity<Manager> updateManagerDetails(@Valid @RequestBody ManagerDTO managerDTO,
-			@RequestParam int retryCount) {
+	public ResponseEntity<Manager> updateManagerDetails(@Valid @RequestBody ManagerDTO managerDTO) {
 		Manager result = managerService.updateManagerDetails(managerDTO);
 		if (result != null)
 			return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -73,8 +74,8 @@ public class ManagerResource {
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 	}
 
-	@GetMapping("/find/{managerId}/{retryCount}")
-	public ResponseEntity<Manager> findByManagerId(@PathVariable long managerId, @PathVariable int retryCount) {
+	@GetMapping("/find/{managerId}")
+	public ResponseEntity<Manager> findByManagerId(@PathVariable long managerId) {
 		Manager response = null;
 			response = managerService.findManagerById(managerId);
 			if (response == null) {
