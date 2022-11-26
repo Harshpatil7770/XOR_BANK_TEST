@@ -1,11 +1,18 @@
 package com.xoriant.bank.service;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.validation.Valid;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
@@ -13,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.xoriant.bank.dto.BranchDTO;
 import com.xoriant.bank.dto.ManagerDTO;
 import com.xoriant.bank.exception.ElementNotFoundException;
@@ -28,13 +36,11 @@ import com.xoriant.bank.repo.ManagerCredentialRepo;
 import com.xoriant.bank.repo.ManagerRepo;
 import com.xoriant.bank.util.ApplicationConstant;
 
-import ch.qos.logback.classic.Logger;
-import lombok.extern.slf4j.Slf4j;
-
 @Service
-@Slf4j
 @Component
 public class BranchServiceImpl implements BranchService {
+
+	private final Logger logger = LoggerFactory.getLogger(BranchServiceImpl.class);
 
 	@Autowired
 	private BranchRepo branchRepo;
@@ -65,89 +71,184 @@ public class BranchServiceImpl implements BranchService {
 	private Address managerHomeAddress;
 	private ManagerCredential credential;
 
-	@Override
-	public boolean addNewBranch(@Valid BranchDTO branchDTO) {
-		boolean branchDetails = false;
-		if (branchDTO != null) {
-			branchDetails = addNewBranchDetails(branchDTO);
-		} else {
-			log.info("branchDTO is null. no need to further proceed.");
-			branchDetails = false;
-		}
-		return branchDetails;
+	Map<Long, Queue<BranchDTO>> initialStoredMap;
+
+	ObjectMapper objectMapper;
+
+	// @PostConstruct method level annotations. execute method only once
+	// after the initilization of bean
+	@PostConstruct
+	public void init() {
+		initialStoredMap = new ConcurrentHashMap<>();
+		objectMapper = new ObjectMapper();
 	}
 
-	private boolean addNewBranchDetails(BranchDTO branchDTO) {
+	public void removeDataFromMap(BranchDTO branchDTO) {
+		logger.info("Processing of message is completed. Now removing from map.");
+		synchronized (initialStoredMap) {
+			Long key = branchDTO.getBranchId();
+			if (key != null && initialStoredMap.containsKey(key)) {
+				logger.info("Checking basic details map for sequence key - {}", key);
+				if (initialStoredMap.get(key).isEmpty()) {
+					logger.info("key removed from basic details map - {}", key);
+					initialStoredMap.remove(key);
+				}
+
+			}
+		}
+	}
+
+	@Override
+	public boolean addNewBranch(BranchDTO branchDTO) {
 		boolean branchDetails = false;
 		try {
-			branchDetails = branchServiceImplDetails.addNewBranchDetails(branchDTO);
+			if (branchDTO != null) {
+				branchDetails = branchServiceImplDetails.addNewBranchDetails(branchDTO);
+			} else {
+				logger.info("branchDTO is null. no need to further proceed.");
+				branchDetails = false;
+			}
+			return branchDetails;
 		} catch (Exception e) {
-			branchDetails = false;
-			log.info("Exception occured while adding new Branch details " + e);
-			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
+			logger.error("BranchServiceImplDetails- Expection occured while adding new branch.");
+			throw new RuntimeException(e);
 		}
-		return branchDetails;
 	}
+
+//	private boolean addNewBranchDetails(BranchDTO branchDTO) throws Exception {
+//		boolean branchDetails = false;
+////		try {
+//		branchDetails = branchServiceImplDetails.addNewBranchDetails(branchDTO);
+////		} catch (Exception e) {
+////			branchDetails = false;
+////			log.info("Exception occured while adding new Branch details " + e);
+////			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
+////		}
+//		return branchDetails;
+//	}
 
 	@Override
 	public boolean updateBranchDetails(BranchDTO branchDTO) {
 		boolean branchDetails = false;
 		if (branchDTO != null) {
-			branchDetails = updateExistingBranch(branchDTO);
+			initialStoredMap.put(branchDTO.getBranchId(), new LinkedList<BranchDTO>());
+//			branchDetails = updateExistingBranch(branchDTO, 0);
+			removeDataFromMap(branchDTO);
 		} else {
-			log.info("branchDTO is null. No need to proceed further");
+			logger.info("branchDTO is null. No need to proceed further");
 			branchDetails = false;
 		}
 		return branchDetails;
 	}
 
-	private boolean updateExistingBranch(BranchDTO branchDTO) {
+	private boolean updateExistingBranch(BranchDTO branchDTO, int retryCount) {
 		boolean branchDetails = false;
 		try {
 			branchDetails = branchServiceImplDetails.updateExistingBranch(branchDTO);
 		} catch (Exception e) {
-			branchDetails = false;
-			log.info("Exception occured while updating existing branch details " + e);
-			runtimeManager.getErrorController(ErrorCode.EXISTING_BRANCH_UPDATION_FAILED);
+			logger.error("BranchServiceImpl - Exception occured while updating branch details ", e);
+			if (retryCount < RETRY_COUNT) {
+				retryCount++;
+				logger.info("BranchServiceImpl - Retring routing of message count {}", retryCount);
+				updateExistingBranch(branchDTO, retryCount);
+			} else {
+				logger.info("BranchServiceImpl - Exception occured while updating branch details ", e);
+				logger.info("BranchServiceImpl - Maximum retrying routing of message count is reached {}", retryCount);
+				runtimeManager.getErrorController(ErrorCode.EXISTING_BRANCH_UPDATION_FAILED);
+			}
+//			branchDetails = false;
+//			logger.info("Exception occured while updating existing branch details " + e);
+//			runtimeManager.getErrorController(ErrorCode.EXISTING_BRANCH_UPDATION_FAILED);
 		}
 		return branchDetails;
 	}
 
-	@Override
-	@Cacheable(value = "adminServiceImplCache")
-	public List<Branch> fetchAllBranch() {
-		List<Branch> existingBranchLists = branchRepo.findAll();
-		if (existingBranchLists.isEmpty()) {
-			throw new ElementNotFoundException();
-		}
-		log.info(ApplicationConstant.FETCH_ALL_BRANCH);
-		return existingBranchLists;
-	}
+//	@Override
+//	@Cacheable(value = "adminServiceImplCache")
+//	public List<Branch> fetchAllBranch() {
+//		try {
+//		List<Branch> existingBranchLists = branchRepo.findAll();
+//		if (existingBranchLists.isEmpty()) {
+//			throw new ElementNotFoundException();
+//		}
+//		logger.info(ApplicationConstant.FETCH_ALL_BRANCH);
+//		return existingBranchLists;
+//		}catch(Exception e) {
+//			logger.error("BranchServiceImpl - Exception ocured while fetching data from branch",e);
+//			try {
+//				retryCount++;
+//				Thread.sleep(retryCount* WAIT_TIME);
+//				logger.info("BranchServiceImpl - Retrying routing of message count {}",retryCount);
+//				fetchAllBranch(retryCount);
+//			}catch(Exception ex) {
+//				
+//			}
+//		}
+//	}
 
 	@Override
 	@Cacheable(value = "adminServiceImplCache", key = "#branchId")
-	public Branch findByBranchId(long branchId) {
-		Branch existingBrand = branchRepo.findById(branchId).orElse(null);
-		if (existingBrand == null) {
-			log.info("Entered Branch Id :: " + branchId
-					+ "  details not available in system. No need to proceed further.");
-			return null;
+	public Branch findByBranchId(long branchId, int retryCount) {
+		Branch existingBrand = null;
+		try {
+			existingBrand = branchRepo.findById(branchId).orElse(null);
+			if (existingBrand == null) {
+				logger.info("Entered Branch Id :: " + branchId
+						+ "  details not available in system. No need to proceed further.");
+				return null;
+			}
+			logger.info("Branch details found for the entered branchId " + branchId);
+		} catch (Exception e) {
+			logger.error("BranchServiceImpl - Exception occured while fetching data from db ", e);
+			if (retryCount < RETRY_COUNT) {
+				try {
+					retryCount++;
+					Thread.sleep(retryCount * WAIT_TIME);
+					logger.info("BranchServiceImpl - Retring routing of message count {}", retryCount);
+					findByBranchId(branchId, retryCount);
+				} catch (Exception ex) {
+					logger.info("BranchServiceImpl - Exception occured while fetching data from db ", e);
+					logger.info("BranchServiceImpl - Maximun Retring routing of message count {} is reached",
+							retryCount);
+					runtimeManager.getErrorController(ErrorCode.FAILED_FETHCING_BRANCH_DETAILS);
+				}
+			}
 		}
-		log.info("Branch details found for the entered branchId " + branchId);
+		logger.debug("Branch details found for the entered branchId ", existingBrand);
 		return existingBrand;
 	}
 
 	@Override
 	@Cacheable(value = "adminServiceImplCache", key = "#branchName")
-	public Branch findBranchByName(String branchName) {
-		Branch existingBranchDetails = branchRepo.findByBranchName(branchName.toUpperCase()).orElse(null);
-		if (existingBranchDetails == null) {
-			log.info("Entered branch name  " + branchName + " . Branch details not avaible for this name."
-					+ "No Need to proceed further.");
-			return null;
+	public Branch findBranchByName(String branchName, int retryCount) {
+		Branch existingBranchDetails = null;
+		try {
+			existingBranchDetails = branchRepo.findByBranchName(branchName.toUpperCase()).orElse(null);
+			if (existingBranchDetails == null) {
+				logger.info("Entered branch name  " + branchName + " . Branch details not avaible for this name."
+						+ "No Need to proceed further.");
+				return null;
+			}
+			logger.info("Branch details avaliable for the entered branchName " + branchName);
+		} catch (Exception e) {
+			logger.error("BranchServiceImpl - Exception occured while fetching the data", e);
+			if (retryCount < RETRY_COUNT) {
+				try {
+					retryCount++;
+					Thread.sleep(retryCount * WAIT_TIME);
+					logger.info("BranchServiceImpl - Retrying routing of message count {}", retryCount);
+					findBranchByName(branchName, retryCount);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			} else {
+				logger.info("BranchServiceImpl - Exception occured while fetching the data", e);
+				logger.info("BranchServiceImpl - maximun retrying routing is reached {}", retryCount);
+				runtimeManager.getErrorController(ErrorCode.FAILED_FETHCING_BRANCH_DETAILS);
+			}
 		}
-		log.info("Branch details avaliable for the entered branchName " + branchName);
 		return existingBranchDetails;
+
 	}
 
 	@Override
@@ -157,27 +258,64 @@ public class BranchServiceImpl implements BranchService {
 	 */
 //	@Cacheable(value = "adminServiceImplCache", key = "#branchId")
 	@Transactional
-	public boolean deleteBranch(long branchId) {
-		Branch existingBranch = branchRepo.findById(branchId).orElse(null);
-		if (existingBranch == null) {
-			log.info("Entered branch id is not present in database. No need to further Proceed.");
-			return false;
+	public boolean deleteBranch(long branchId, int retryCount) {
+		try {
+			Branch existingBranch = branchRepo.findById(branchId).orElse(null);
+			if (existingBranch == null) {
+				logger.info("Entered branch id is not present in database. No need to further Proceed.");
+				return false;
+			}
+			branchRepo.deleteById(branchId);
+			logger.info("Deleted Existing Branch Succesfully -  BRANCH_ID {}", branchId);
+		} catch (Exception e) {
+			logger.error("BranchServiceImpl - Exception occured while fetching data from db ", e);
+			try {
+				if (retryCount < RETRY_COUNT) {
+					retryCount++;
+					Thread.sleep(retryCount * WAIT_TIME);
+					logger.info("BranchServiceImpl - Retrying routing message count {}", retryCount);
+					deleteBranch(branchId, retryCount);
+				} else {
+					logger.info("BranchServiceImpl - Exception occured while fetching data from db ", e);
+					logger.info("BranchServiceImpl - Maximun Retrying routing message count {} is reached", retryCount);
+					runtimeManager.getErrorController(ErrorCode.DELETION_OF_BRANCH_FAILED);
+				}
+
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
 		}
-		branchRepo.deleteById(branchId);
-		branchServiceImplDetails
-				.deleteExistingBranch("Deleted Existing Branch Succesfully -  BRANCH_ID ::  " + branchId);
 		return true;
 	}
 
 	@Override
 	@Cacheable(value = "adminServiceImplCache")
-	public List<Branch> findAllBranchesWithAddressDetails() {
-		List<Branch> existingBranchDetails = branchRepo.findAllBranchesWithAddressDetails();
-		if (existingBranchDetails == null) {
-			log.info("Branch Details not found in database. No need to proceed further.");
-			return null;
+	public List<Branch> findAllBranchesWithAddressDetails(int retryCount) {
+		List<Branch> existingBranchDetails = null;
+		try {
+			existingBranchDetails = branchRepo.findAllBranchesWithAddressDetails();
+			if (existingBranchDetails == null) {
+				logger.info("Branch Details not found in database. No need to proceed further.");
+				return null;
+			}
+			logger.info("Branch and their address details present in database");
+		} catch (Exception e) {
+			logger.error("BranchServiceImpl - Exception occured while fetching data.");
+			if (retryCount < RETRY_COUNT) {
+				try {
+					retryCount++;
+					Thread.sleep(retryCount * WAIT_TIME);
+					logger.info("BranchServiceImpl - Retrying routing of message count {}", retryCount);
+					findAllBranchesWithAddressDetails(retryCount);
+				} catch (Exception ex) {
+					throw new RuntimeException(ex);
+				}
+			} else {
+				logger.info("BranchServiceImpl - Exception occured while fetching data.");
+				logger.info("BranchServiceImpl - Maximun retrying routing count reached {}", retryCount);
+				runtimeManager.getErrorController(ErrorCode.FAILED_FETHCING_BRANCH_DETAILS);
+			}
 		}
-		log.info("Branch and their address details present in database");
 		return existingBranchDetails;
 	}
 
@@ -494,6 +632,5 @@ public class BranchServiceImpl implements BranchService {
 //		managerRepo.deleteById(managerId);
 //	}
 //
-
 
 }

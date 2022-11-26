@@ -1,40 +1,40 @@
 package com.xoriant.bank.sender.service;
 
+import java.io.Serializable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
-
-import com.xoriant.bank.model.Branch;
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
-@Slf4j
 public class BranchInfoMsgService {
 
+	private final Logger logger=LoggerFactory.getLogger(BranchInfoMsgService.class);
+	
 	@Autowired
 	private RabbitTemplate rabbitTemplate;
 
-	
 	@Value("${branchOutQueue}")
 	private String outQueue;
-	
+
 	@Bean
 	public Queue branchDetailsQueue() {
 		return new Queue(outQueue, false);
 	}
 
-	public void publishMessageToQueue(String message) {
-		log.info("Sending msg to the queue ..." + message);
+	@Transactional
+	public <T extends Serializable> void publishMessageToQueue(final T message) throws Exception{
+		logger.info("Sending msg to the queue >>> {} ",outQueue);
 		long startTime = System.currentTimeMillis();
-		rabbitTemplate.convertAndSend(outQueue,message);
-		long endTime = System.currentTimeMillis();
-		long actualRequiredTime = endTime - startTime;
-		log.info("Time Required to put msg over the queue " + actualRequiredTime + " milliseconds");
-		log.info("Message sent succesfully to the queue");
+		rabbitTemplate.convertAndSend(outQueue, message);
+		logger.info("Time Required to put msg over the queue {} ms",System.currentTimeMillis()-startTime);
+		logger.info("Message sent succesfully to the queue.");
 	}
 
 }

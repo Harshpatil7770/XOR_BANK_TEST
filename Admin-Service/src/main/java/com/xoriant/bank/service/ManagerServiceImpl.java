@@ -13,7 +13,7 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;	
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -70,7 +70,7 @@ public class ManagerServiceImpl implements ManagerService {
 
 	// It called only once, after the intilization of bean
 	@PostConstruct
-	public void init() {
+	public void init() {		
 
 		// while completing the complete transaction we will put data in map.
 		basicDetailsMap = new ConcurrentHashMap<Long, Queue<ManagerDTO>>();

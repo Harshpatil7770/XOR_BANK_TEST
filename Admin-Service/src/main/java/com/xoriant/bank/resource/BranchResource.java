@@ -40,51 +40,44 @@ public class BranchResource {
 
 	@PostMapping("/save")
 	public ResponseEntity<String> addNewBranch(@Valid @RequestBody BranchDTO branchDTO) {
-		try {
-			log.info(">>>> addNewBranch() called " + branchDTO);
-			boolean response = branchService.addNewBranch(branchDTO);
-			if (response == true) {
-				return new ResponseEntity<>("New Branch Details Added Succesfully ", HttpStatus.CREATED);
-			}
-		} catch (Exception e) {
-			log.info("BranchResource - exception occured while adding new branch " + e);
-			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
+//		try {
+		boolean response = branchService.addNewBranch(branchDTO);
+		if (response) {
+			return new ResponseEntity<>("New Branch Details Added Succesfully ", HttpStatus.CREATED);
 		}
-		return new ResponseEntity<>("Unable to add new branch details ", HttpStatus.CREATED);
+//		} catch (Exception e) {
+//			log.info("BranchResource - exception occured while adding new branch " + e);
+//			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
+//		}
+		return new ResponseEntity<>("Unable to add new branch details ", HttpStatus.BAD_REQUEST);
 	}
 
 	@PutMapping("/update")
 	public ResponseEntity<String> updateBranchDetails(@Valid @RequestBody BranchDTO branchDTO) {
-		try {
-			log.info("UpdateBranch() called " + branchDTO);
+//		try {
 			boolean response = branchService.updateBranchDetails(branchDTO);
-			if (response == true) {
+			if (response) {
 				return new ResponseEntity<>("Updated Exsiting Branch Details Succesfully ", HttpStatus.OK);
 			}
-		} catch (Exception e) {
-			log.info("BranchResource - exception occured while updating existing branch details " + e);
-			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
-		}
-		return new ResponseEntity<>("Unable to update the existing branch details ", HttpStatus.OK);
+//		} catch (Exception e) {
+//			log.info("BranchResource - exception occured while updating existing branch details " + e);
+//			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
+//		}
+		return new ResponseEntity<>("Unable to update the existing branch details ", HttpStatus.BAD_REQUEST);
 	}
 
 	@GetMapping("/findAll/branches")
 	public ResponseEntity<List<Branch>> findAllBranchesWithAddressDetails() {
-		try {
-			log.info("findAllBranchesWithAddressDetails() called ");
-			List<Branch> response = branchService.findAllBranchesWithAddressDetails();
+			List<Branch> response = branchService.findAllBranchesWithAddressDetails(0);
 			if (response != null)
 				return new ResponseEntity<>(response, HttpStatus.OK);
-		} catch (Exception e) {
-			log.info("Exception occured while fetching all branch details", e);
-		}
+			else
 		return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 	}
 
 	@GetMapping("/find-branch/{branchId}")
 	public ResponseEntity<Branch> findByBranchId(@PathVariable long branchId) {
-		log.info("findByBranchId() called ");
-		Branch response = branchService.findByBranchId(branchId);
+		Branch response = branchService.findByBranchId(branchId,0);
 		if (response == null)
 			return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
 		else
@@ -93,8 +86,7 @@ public class BranchResource {
 
 	@GetMapping("/find-branch")
 	public ResponseEntity<Branch> findBranchByName(@RequestParam String branchName) {
-		log.info("findBranchByName() called ");
-		Branch response = branchService.findBranchByName(branchName);
+		Branch response = branchService.findBranchByName(branchName,0);
 		if (response != null)
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		else
@@ -103,21 +95,20 @@ public class BranchResource {
 
 	@DeleteMapping("/delete-branch")
 	public ResponseEntity<String> deleteBranch(@RequestParam long branchId) {
-		try {
-			log.info("deleteBranch() called");
-			boolean response = branchService.deleteBranch(branchId);
+//		try {
+//			log.info("deleteBranch() called");
+			boolean response = branchService.deleteBranch(branchId,0);
 			if (response == true) {
 				return new ResponseEntity<>("Entered Branch Id = " + branchId + " removed succesfully from system",
 						HttpStatus.OK);
 			}
-		} catch (Exception e) {
-			log.info("BranchResource - exception occured while deleting existing branch details " + e);
-			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
-		}
+//		} catch (Exception e) {
+//			log.info("BranchResource - exception occured while deleting existing branch details " + e);
+//			runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
+//		}
 		return new ResponseEntity<>("Unable to delete Existing Branch details", HttpStatus.OK);
 	}
 
-	
 //	public ResponseEntity<Manager> addNewManager(ManagerDTO managerDTO)
 
 //	Manager updateManagerDetails(ManagerDTO managerDTO);

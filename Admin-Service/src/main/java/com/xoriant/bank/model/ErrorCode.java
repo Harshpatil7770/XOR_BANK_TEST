@@ -8,7 +8,8 @@ public enum ErrorCode {
 	DELETION_OF_BRANCH_FAILED("Error code - Failed while deleting existing branch",1003),
 	NEW_MANAGER_ADDITION_FAILED("ErrorCode - Failed while adding new Manager details",1004),
 	FAILED_FETCHING_MANAGER_DETAILS("ErrorCode - Failed while fetching data from database",1005),
-	FAILED_UPDATING_THE_DETAILS("ErrorCode - Failed while updating the details",1006);
+	FAILED_UPDATING_THE_DETAILS("ErrorCode - Failed while updating the details",1006),
+	FAILED_FETHCING_BRANCH_DETAILS("ErrorCode - Failed while fetching the details",1007);
 
 	private String description;
 

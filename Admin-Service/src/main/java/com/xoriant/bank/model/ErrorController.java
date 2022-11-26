@@ -46,6 +46,11 @@ public class ErrorController implements RuntimeManager {
 			processShutDownCmd(errorCode);
 			break;
 		}
+		case FAILED_FETHCING_BRANCH_DETAILS: {
+			log.error("ErrorController - Error occured while fetching data from database");
+			processShutDownCmd(errorCode);
+			break;
+		}
 		default:
 			log.info("No Handler is found " + errorCode.getErrorCode() + " " + errorCode.getDescription());
 		}

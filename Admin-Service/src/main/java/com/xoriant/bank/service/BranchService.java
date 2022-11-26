@@ -11,17 +11,17 @@ public interface BranchService {
 
 	boolean addNewBranch(BranchDTO branchDTO);
 	
-	List<Branch> findAllBranchesWithAddressDetails();
+	List<Branch> findAllBranchesWithAddressDetails(int retryCount);
 
 	boolean updateBranchDetails(BranchDTO branchDTO);
 
-	List<Branch> fetchAllBranch();
+//	List<Branch> fetchAllBranch(int retryCount);
 
-	Branch findByBranchId(long branchId);
+	Branch findByBranchId(long branchId,int retryCount);
 
-	Branch findBranchByName(String branchName);
+	Branch findBranchByName(String branchName,int retryCount);
 
-	boolean deleteBranch(long branchId);
+	boolean deleteBranch(long branchId,int retryCount);
 
 //	Manager addNewManager(ManagerDTO managerDTO);
 //
