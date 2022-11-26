@@ -2,6 +2,8 @@ package com.xoriant.bank.service;
 
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -23,11 +25,12 @@ import com.xoriant.bank.util.ApplicationConstant;
 import lombok.extern.slf4j.Slf4j;
 
 @Component
-@Slf4j
 public class BranchServiceImplDetails {
 
+	private Logger logger = LoggerFactory.getLogger(BranchServiceImplDetails.class);
+
 	@Autowired
-	private BranchRepo branchRepo;
+	BranchRepo branchRepo;
 
 	@Autowired
 	private ManagerRepo managerRepo;
@@ -62,16 +65,16 @@ public class BranchServiceImplDetails {
 			branch.setBranchId(branchDTO.getBranchId());
 			branch.setBranchName(branchDTO.getBranchName().toUpperCase());
 			if (branch.getBranchName().isBlank() || branch.getBranchName().isEmpty()) {
-				log.info("Branch name is null. No need to proceed further.");
+				logger.info("Branch name is null. No need to proceed further.");
 				return false;
 			}
 			branch.setIfscCode(branchDTO.getIfscCode());
 			if (branch.getIfscCode().isBlank() || branch.getIfscCode().isEmpty()) {
-				log.info("IFSC Code is null. No need to proceed further.");
+				logger.info("IFSC Code is null. No need to proceed further.");
 				return false;
 			}
 			// ------- Branch Address Details ----------//
-			log.info("Branch id,name,ifsc code started adding ....");
+			logger.info("Branch id,name,ifsc code started adding ....");
 			branchAddress = new Address();
 			branchAddress.setAddressId(branchDTO.getAddressDTO().getAddressId());
 			branchAddress.setHouseNumber(branchDTO.getAddressDTO().getHouseNumber());
@@ -79,47 +82,46 @@ public class BranchServiceImplDetails {
 			branchAddress.setStreetName(branchDTO.getAddressDTO().getStreetName().toUpperCase());
 			branchAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
 			branch.setAddress(branchAddress);
-			log.info("Branch address details adding ...");
-			log.info(ApplicationConstant.ADD_NEW_BRANCH);
+			logger.info("Branch address details adding ...");
+			logger.info(ApplicationConstant.ADD_NEW_BRANCH);
 			branchRepo.save(branch);
-			int retryCount = 0;
-			String msgDetails=branch.toString();
-			publishToQueue(msgDetails, retryCount);
+			String msgDetails = branch.toString();
+			publishToQueue(msgDetails, 0);
 			return true;
 		} else {
-			log.info("branchDTO is null. No need to further proceed.");
+			logger.info("branchDTO is null. No need to further proceed.");
 			return false;
 		}
 	}
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW, rollbackFor = Exception.class)
-	public boolean updateExistingBranch(BranchDTO branchDTO) {
+	public boolean updateExistingBranch(BranchDTO branchDTO) throws Exception {
 		if (branchDTO != null) {
 			// ----------- Check weather the branch present or not ----------------//
 			Optional<Branch> existingBranchDetails = branchRepo.findById(branchDTO.getBranchId());
 			if (!existingBranchDetails.isPresent()) {
-				log.info("Entered Brand id not present in database. No need to proceed further");
+				logger.info("Entered Branch id not present in database. No need to proceed further");
 				return false;
 			}
-			log.info("Entered branch_id is present moving further ....");
+			logger.info("Entered branch_id is present moving further ....");
 			// ----------- Update the existing branch details --------------------//
 			Branch updateBranch = branchRepo.findById(branchDTO.getBranchId()).orElse(null);
 			updateBranch.setBranchId(branchDTO.getBranchId());
 			updateBranch.setBranchName(branchDTO.getBranchName().toUpperCase());
 			if (branchDTO.getBranchName().isBlank() || branchDTO.getBranchName().isEmpty()) {
-				log.info("Branch Name is Empty. No need to proceed further.");
+				logger.info("Branch Name is Empty. No need to proceed further.");
 				return false;
 			}
 			updateBranch.setIfscCode(branchDTO.getIfscCode().toUpperCase());
 			if (branchDTO.getIfscCode().isBlank() || branchDTO.getIfscCode().isEmpty()) {
-				log.info("IFSC Code is empty. No need to proceed further.");
+				logger.info("IFSC Code is empty. No need to proceed further.");
 				return false;
 			}
 
 			// ----------- Check weather the branch address present or not--------//
 			Optional<Address> existingBranchAddress = addressRepo.findById(branchDTO.getAddressDTO().getAddressId());
 			if (!existingBranchAddress.isPresent()) {
-				log.info("Entered address id not present in database. No need to proceed futher.");
+				logger.info("Entered address id not present in database. No need to proceed futher.");
 				return false;
 			}
 			// ----------- Update the existing address details --------------------//
@@ -130,45 +132,46 @@ public class BranchServiceImplDetails {
 			updateAddress.setStreetName(branchDTO.getAddressDTO().getStreetName().toUpperCase());
 			updateAddress.setCityName(branchDTO.getAddressDTO().getCityName().toUpperCase());
 			updateBranch.setAddress(updateAddress);
-			log.info(ApplicationConstant.UPDATE_BRANCH_DETAILS);
+			logger.info(ApplicationConstant.UPDATE_BRANCH_DETAILS);
 			branchRepo.save(updateBranch);
 			int retryCount = 0;
-			String msgDetails=updateBranch.toString();
+			String msgDetails = updateBranch.toString();
 			publishToQueue(msgDetails, retryCount);
 		} else {
-			log.info("BranchDTO is empty. No need to proceed further");
+			logger.info("BranchDTO is empty. No need to proceed further");
 		}
 		return true;
 	}
 
 	public void deleteExistingBranch(String msgDetails) {
-		int retryCount=0;
-		publishToQueue(msgDetails,retryCount);
+		publishToQueue(msgDetails, 0);
 	}
+
 	/*
 	 * if you are sending msg to queue and exception occured at runtime like lost mq
 	 * connection or anything need to retry the logic with thread sleep. But if you
 	 * retrying method from starting point of unit of work you don't need to wait or
 	 * don't need to use thread sleep.
 	 */
+	@Transactional
 	private void publishToQueue(String msgDetails, int retryCount) {
 		try {
 			branchInfoMsgService.publishMessageToQueue(msgDetails);
 		} catch (Exception e) {
-			log.info("Exception occured while publishing message to queue " + e);
+			logger.error("BranchServiceImplDetails - Exception occured while publishing message to queue " + e);
 			if (retryCount < RETRY_COUNT) {
 				try {
 					Thread.sleep(retryCount * WAIT_TIME);
 					retryCount++;
-					log.info("Routing message again for count  " + retryCount);
+					logger.info("BranchServiceImplDetails- Retrying routing of message count {}", retryCount);
 					publishToQueue(msgDetails, retryCount);
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 
 			} else {
-				log.info("Exception occured while publishing message to queue " + e);
-				log.info("Maximum retry count limit has reached " + retryCount);
+				logger.info("BranchServiceImplDetails- Exception occured while publishing message to queue " + e);
+				logger.info("BranchServiceImplDetails- Maximum retrying routing count is reached {}", retryCount);
 				runtimeManager.getErrorController(ErrorCode.NEW_BRANCH_ADDITION_FAILED);
 			}
 		}
