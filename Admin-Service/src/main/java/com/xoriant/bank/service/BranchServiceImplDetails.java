@@ -63,16 +63,16 @@ public class BranchServiceImplDetails {
 			// ----------- Branch Details --------------//
 			branch = new Branch();
 			branch.setBranchId(branchDTO.getBranchId());
-			branch.setBranchName(branchDTO.getBranchName().toUpperCase());
-			if (branch.getBranchName().isBlank() || branch.getBranchName().isEmpty()) {
+			if ((branchDTO.getBranchName()==null)||branchDTO.getBranchName().isBlank() || branchDTO.getBranchName().isEmpty()) {
 				logger.info("Branch name is null. No need to proceed further.");
 				return false;
 			}
-			branch.setIfscCode(branchDTO.getIfscCode());
-			if (branch.getIfscCode().isBlank() || branch.getIfscCode().isEmpty()) {
+			branch.setBranchName(branchDTO.getBranchName().toUpperCase());
+			if ((branchDTO.getIfscCode()==null)||branchDTO.getIfscCode().isBlank() || branchDTO.getIfscCode().isEmpty()) {
 				logger.info("IFSC Code is null. No need to proceed further.");
 				return false;
 			}
+			branch.setIfscCode(branchDTO.getIfscCode());
 			// ------- Branch Address Details ----------//
 			logger.info("Branch id,name,ifsc code started adding ....");
 			branchAddress = new Address();
